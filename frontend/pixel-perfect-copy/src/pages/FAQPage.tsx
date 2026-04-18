@@ -2,6 +2,7 @@ import { useState } from "react";
 import { ChevronDown } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import { useLanguage } from "@/context/LanguageContext";
 
 import img_pcb5yTRmmPb3AD4e14mWz1oMukM_jpg from "../assets/external/pcb5yTRmmPb3AD4e14mWz1oMukM.jpg";
 
@@ -41,7 +42,43 @@ const faqs = [
 ];
 
 const FAQPage = () => {
+  const { t } = useLanguage();
   const [openIndex, setOpenIndex] = useState<number>(0);
+
+  const faqs = [
+    {
+      question: t('faqpage.q1'),
+      answer: t('faqpage.a1'),
+    },
+    {
+      question: t('faqpage.q2'),
+      answer: t('faqpage.a2'),
+    },
+    {
+      question: t('faqpage.q3'),
+      answer: t('faqpage.a3'),
+    },
+    {
+      question: t('faqpage.q4'),
+      answer: t('faqpage.a4'),
+    },
+    {
+      question: t('faqpage.q5'),
+      answer: t('faqpage.a5'),
+    },
+    {
+      question: t('faqpage.q6'),
+      answer: t('faqpage.a6'),
+    },
+    {
+      question: t('faqpage.q7'),
+      answer: t('faqpage.a7'),
+    },
+    {
+      question: t('faqpage.q8'),
+      answer: t('faqpage.a8'),
+    },
+  ];
 
   return (
     <div className="min-h-screen">
@@ -58,8 +95,8 @@ const FAQPage = () => {
           <div className="absolute inset-0 bg-eco-green-dark/50" />
         </div>
         <div className="relative z-10 max-w-7xl mx-auto px-6 lg:px-16 w-full">
-          <h1 className="font-heading text-5xl md:text-7xl font-bold text-primary-foreground">FAQ</h1>
-          <p className="text-primary-foreground/80 text-lg mt-4">Have a Question? Check Out Our FAQ for Quick Help</p>
+          <h1 className="font-heading text-5xl md:text-7xl font-bold text-primary-foreground">{t('faqpage.title')}</h1>
+          <p className="text-primary-foreground/80 text-lg mt-4">{t('faqpage.subtitle')}</p>
         </div>
       </section>
 

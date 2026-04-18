@@ -1,22 +1,26 @@
 import img_ylH1TySsTue8MjCcWn0lFAjBcI_jpg from "../assets/external/ylH1TySsTue8MjCcWn0lFAjBcI.jpg";
-const steps = [
-  { num: "01", title: "Schedule Your Experience", desc: "Enrich soil with nutrients for healthy crop growth." },
-  { num: "02", title: "Get Professional Advice", desc: "Carefully sow seeds to ensure optimal growth." },
-  { num: "03", title: "Meet Our Expert Farmer", desc: "Monitor and care for crops with sustainable practices." },
-  { num: "04", title: "Now Get a Best Products", desc: "Harvest at peak freshness and deliver straight to you." },
-];
+import { useLanguage } from "@/context/LanguageContext";
 
 const HowWeWork = () => {
+  const { t } = useLanguage();
+  
+  const steps = [
+    { num: "01", title: t('howwe.step1'), desc: t('howwe.step1_desc') },
+    { num: "02", title: t('howwe.step2'), desc: t('howwe.step2_desc') },
+    { num: "03", title: t('howwe.step3'), desc: t('howwe.step3_desc') },
+    { num: "04", title: t('howwe.step4'), desc: t('howwe.step4_desc') },
+  ];
+
   return (
     <section className="py-20 bg-eco-cream">
       <div className="max-w-7xl mx-auto px-6 lg:px-16">
         <div className="text-center mb-4">
-          <span className="text-eco-green font-semibold text-sm uppercase tracking-widest">Our Working Step</span>
+          <span className="text-eco-green font-semibold text-sm uppercase tracking-widest">KisanSathi Process</span>
           <h2 className="font-heading text-3xl md:text-5xl font-bold text-foreground mt-3">
-            How We Do Agricultural Work
+            {t('howwe.title')}
           </h2>
           <p className="text-muted-foreground max-w-2xl mx-auto mt-4 text-sm">
-            The modern consumer demands, quality organic products which is why our selection of farm-grown herbs are top quality, always fresh, and 100% organic certified.
+            {t('howwe.subtitle')}
           </p>
         </div>
 

@@ -1536,6 +1536,201 @@ def api_chatbot_message():
         return jsonify({'success': False, 'error': str(e)}), 400
 
 # ===============================================================================================
+# AUTHENTICATION ENDPOINTS
+# ===============================================================================================
+
+from utils.auth_mongo import (
+    register_user, login_user, verify_token, get_user_by_id,
+    update_user_profile, change_password, reset_password
+)
+
+@app.route('/api/auth/register', methods=['POST'])
+def api_register():
+    """Register a new farmer"""
+    try:
+        data = request.get_json()
+        
+        name = data.get('name', '').strip()
+        email = data.get('email', '').strip()
+        mobile = data.get('mobile', '').strip()
+        agriculture_type = data.get('agriculture_type', '').strip()
+        password = data.get('password', '')
+        
+        success, result = register_user(name, email, mobile, agriculture_type, password)
+        
+        if success:
+            return jsonify({
+                'success': True,
+                'message': result.get('message'),
+                'user_id': result.get('user_id'),
+                'token': result.get('token'),
+                'name': result.get('name')
+            }), 201
+        else:
+            return jsonify({
+                'success': False,
+                'error': result
+            }), 400
+    
+    except Exception as e:
+        print(f"Registration error: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/auth/login', methods=['POST'])
+def api_login():
+    """Login farmer"""
+    try:
+        data = request.get_json()
+        
+        mobile = data.get('mobile', '').strip()
+        password = data.get('password', '')
+        
+        success, result = login_user(mobile, password)
+        
+        if success:
+            return jsonify({
+                'success': True,
+                'message': result.get('message'),
+                'user_id': result.get('user_id'),
+                'token': result.get('token'),
+                'name': result.get('name'),
+                'email': result.get('email'),
+                'agriculture_type': result.get('agriculture_type')
+            }), 200
+        else:
+            return jsonify({
+                'success': False,
+                'error': result
+            }), 401
+    
+    except Exception as e:
+        print(f"Login error: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/auth/verify-token', methods=['POST'])
+def api_verify_token():
+    """Verify authentication token"""
+    try:
+        data = request.get_json()
+        token = data.get('token', '')
+        
+        if not token:
+            return jsonify({'success': False, 'error': 'Token required'}), 400
+        
+        is_valid, user = verify_token(token)
+        
+        if is_valid:
+            return jsonify({
+                'success': True,
+                'user_id': str(user.get('_id')),
+                'name': user.get('name'),
+                'email': user.get('email'),
+                'mobile': user.get('mobile'),
+                'agriculture_type': user.get('agriculture_type')
+            }), 200
+        else:
+            return jsonify({'success': False, 'error': 'Invalid token'}), 401
+    
+    except Exception as e:
+        print(f"Token verification error: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/auth/profile/<user_id>', methods=['GET'])
+def api_get_profile(user_id):
+    """Get user profile"""
+    try:
+        user = get_user_by_id(user_id)
+        
+        if not user:
+            return jsonify({'success': False, 'error': 'User not found'}), 404
+        
+        return jsonify({
+            'success': True,
+            'user_id': str(user.get('_id')),
+            'name': user.get('name'),
+            'email': user.get('email'),
+            'mobile': user.get('mobile'),
+            'agriculture_type': user.get('agriculture_type'),
+            'created_at': user.get('created_at').isoformat() if user.get('created_at') else None,
+            'last_login': user.get('last_login').isoformat() if user.get('last_login') else None,
+            'profile_complete': user.get('profile_complete')
+        }), 200
+    
+    except Exception as e:
+        print(f"Get profile error: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/auth/profile/<user_id>', methods=['PUT'])
+def api_update_profile(user_id):
+    """Update user profile"""
+    try:
+        data = request.get_json()
+        
+        success, message = update_user_profile(user_id, **data)
+        
+        if success:
+            user = get_user_by_id(user_id)
+            return jsonify({
+                'success': True,
+                'message': message,
+                'user': {
+                    'name': user.get('name'),
+                    'email': user.get('email'),
+                    'agriculture_type': user.get('agriculture_type')
+                }
+            }), 200
+        else:
+            return jsonify({'success': False, 'error': message}), 400
+    
+    except Exception as e:
+        print(f"Update profile error: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/auth/change-password', methods=['POST'])
+def api_change_password():
+    """Change user password"""
+    try:
+        data = request.get_json()
+        
+        user_id = data.get('user_id')
+        old_password = data.get('old_password', '')
+        new_password = data.get('new_password', '')
+        
+        if not user_id:
+            return jsonify({'success': False, 'error': 'User ID required'}), 400
+        
+        success, message = change_password(user_id, old_password, new_password)
+        
+        if success:
+            return jsonify({'success': True, 'message': message}), 200
+        else:
+            return jsonify({'success': False, 'error': message}), 400
+    
+    except Exception as e:
+        print(f"Change password error: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/auth/reset-password', methods=['POST'])
+def api_reset_password():
+    """Reset password (forgot password)"""
+    try:
+        data = request.get_json()
+        
+        mobile = data.get('mobile', '').strip()
+        new_password = data.get('new_password', '')
+        
+        success, message = reset_password(mobile, new_password)
+        
+        if success:
+            return jsonify({'success': True, 'message': message}), 200
+        else:
+            return jsonify({'success': False, 'error': message}), 400
+    
+    except Exception as e:
+        print(f"Reset password error: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+# ===============================================================================================
 
 if __name__ == '__main__':
     app.run(debug=False, host='0.0.0.0', port=5000)

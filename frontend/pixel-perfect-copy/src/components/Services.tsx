@@ -70,12 +70,6 @@ const Services = () => {
   return (
     <section id="services" className="py-20 bg-eco-cream">
       <div className="max-w-7xl mx-auto px-6 lg:px-16">
-        <div className="text-center mb-14">
-          <span className="text-eco-green font-semibold text-sm uppercase tracking-widest">Our Services</span>
-          <h2 className="font-heading text-3xl md:text-5xl font-bold text-foreground mt-3">
-            We Offers Eco & Agriculture Services
-          </h2>
-        </div>
       </div>
 
       {/* Horizontal scroll carousel */}

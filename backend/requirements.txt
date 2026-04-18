@@ -12,3 +12,5 @@ openai
 PyPDF2
 pytesseract
 pdf2image
+pymongo
+dnspython

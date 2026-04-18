@@ -2,6 +2,7 @@ import { useState } from "react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { ChevronDown, CheckCircle, Clock, FileText, ExternalLink } from "lucide-react";
+import { useLanguage } from "@/context/LanguageContext";
 
 const schemes = {
   upcoming: [
@@ -104,6 +105,7 @@ const schemes = {
 };
 
 const GovernmentSchemesPage = () => {
+  const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState<"upcoming" | "ongoing">("ongoing");
   const [expandedScheme, setExpandedScheme] = useState<number | null>(null);
 
@@ -123,10 +125,10 @@ const GovernmentSchemesPage = () => {
         <div className="absolute inset-0 bg-black/40" />
         <div className="relative z-10 max-w-7xl mx-auto px-6 lg:px-16 w-full">
           <h1 className="font-heading text-5xl md:text-7xl font-bold text-primary-foreground mb-4">
-            🏛️ Government Schemes
+            {t('schemes.title')}
           </h1>
           <p className="text-primary-foreground/80 text-lg md:text-xl max-w-lg">
-            Explore agricultural schemes and subsidies available for farmers
+            {t('schemes.subtitle')}
           </p>
         </div>
       </section>
@@ -144,7 +146,7 @@ const GovernmentSchemesPage = () => {
               }`}
             >
               <CheckCircle className="w-5 h-5" />
-              Ongoing Schemes ({schemes.ongoing.length})
+              {t('schemes.ongoing')} ({schemes.ongoing.length})
             </button>
             <button
               onClick={() => setActiveTab("upcoming")}
@@ -155,7 +157,7 @@ const GovernmentSchemesPage = () => {
               }`}
             >
               <Clock className="w-5 h-5" />
-              Upcoming Schemes ({schemes.upcoming.length})
+              {t('schemes.upcoming')} ({schemes.upcoming.length})
             </button>
           </div>
         </div>
@@ -179,15 +181,15 @@ const GovernmentSchemesPage = () => {
                     <h3 className="text-xl font-bold text-eco-green-dark mb-2">{scheme.name}</h3>
                     <div className="flex flex-wrap gap-4 text-sm text-gray-600">
                       <span className="flex items-center gap-1">
-                        <span className="font-semibold">Ministry:</span> {scheme.ministry}
+                        <span className="font-semibold">{t('schemes.ministry')}:</span> {scheme.ministry}
                       </span>
                       <span className="flex items-center gap-1">
-                        <span className="font-semibold">Budget:</span> {scheme.budget}
+                        <span className="font-semibold">{t('schemes.budget')}:</span> {scheme.budget}
                       </span>
                       {activeTab === "upcoming" && (
                         <span className="flex items-center gap-1 text-blue-600 font-semibold">
                           <Clock className="w-4 h-4" />
-                          Launch: {(scheme as any).launchDate}
+                          {t('schemes.launchDate')}: {(scheme as any).launchDate}
                         </span>
                       )}
                       {activeTab === "ongoing" && (
@@ -210,13 +212,13 @@ const GovernmentSchemesPage = () => {
                   <div className="border-t-2 border-gray-200 p-6 bg-gray-50">
                     {/* Description */}
                     <div className="mb-6">
-                      <h4 className="font-bold text-gray-800 mb-2">📋 Description</h4>
+                      <h4 className="font-bold text-gray-800 mb-2">📋 {t('schemes.description')}</h4>
                       <p className="text-gray-700">{scheme.description}</p>
                     </div>
 
                     {/* Benefits */}
                     <div className="mb-6">
-                      <h4 className="font-bold text-gray-800 mb-3">✅ Key Benefits</h4>
+                      <h4 className="font-bold text-gray-800 mb-3">✅ {t('schemes.benefits')}</h4>
                       <ul className="space-y-2">
                         {scheme.benefits.map((benefit, i) => (
                           <li key={i} className="flex items-start gap-3">
@@ -229,7 +231,7 @@ const GovernmentSchemesPage = () => {
 
                     {/* Eligibility */}
                     <div className="mb-6">
-                      <h4 className="font-bold text-gray-800 mb-2">👥 Eligibility</h4>
+                      <h4 className="font-bold text-gray-800 mb-2">👥 {t('schemes.eligibility')}</h4>
                       <p className="text-gray-700 bg-blue-50 p-3 rounded-lg border-l-4 border-blue-500">
                         {scheme.eligibility}
                       </p>
@@ -237,7 +239,7 @@ const GovernmentSchemesPage = () => {
 
                     {/* Application Method */}
                     <div className="mb-6">
-                      <h4 className="font-bold text-gray-800 mb-2">📋 How to Apply</h4>
+                      <h4 className="font-bold text-gray-800 mb-2">📋 {t('schemes.applyMethod')}</h4>
                       <p className="text-gray-700 bg-green-50 p-3 rounded-lg border-l-4 border-green-500">
                         {(scheme as any).applyMethod}
                       </p>
@@ -252,7 +254,7 @@ const GovernmentSchemesPage = () => {
                         className="flex-1 inline-flex items-center justify-center gap-2 bg-gradient-to-r from-green-600 to-teal-600 hover:from-green-700 hover:to-teal-700 text-white font-bold py-3 px-6 rounded-lg transition-all shadow-md hover:shadow-lg"
                       >
                         <ExternalLink className="w-5 h-5" />
-                        Apply Now
+                        {t('schemes.applyNow')}
                       </a>
                     </div>
                   </div>
@@ -267,39 +269,39 @@ const GovernmentSchemesPage = () => {
       <section className="py-16 bg-white">
         <div className="max-w-7xl mx-auto px-6 lg:px-16">
           <h2 className="text-4xl font-bold text-eco-green-dark mb-12 text-center">
-            📝 How to Apply
+            {t('schemes.howToApply')}
           </h2>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {[
               {
                 step: "1",
-                title: "Check Eligibility",
-                description: "Verify if you meet the scheme requirements",
+                title: t('schemes.checkEligibility'),
+                description: t('schemes.checkEligibilityDesc'),
                 icon: "✓",
               },
               {
                 step: "2",
-                title: "Gather Documents",
-                description: "Collect land records, ID, bank details",
+                title: t('schemes.gatherDocs'),
+                description: t('schemes.gatherDocsDesc'),
                 icon: "📄",
               },
               {
                 step: "3",
-                title: "Apply Online/Offline",
-                description: "Submit application through portal or office",
+                title: t('schemes.applyOnline'),
+                description: t('schemes.applyOnlineDesc'),
                 icon: "💻",
               },
               {
                 step: "4",
-                title: "Track Status",
-                description: "Monitor application and receive benefits",
+                title: t('schemes.trackStatus'),
+                description: t('schemes.trackStatusDesc'),
                 icon: "📊",
               },
             ].map((item, index) => (
               <div key={index} className="bg-gradient-to-br from-green-50 to-teal-50 rounded-2xl p-6 border-2 border-green-200">
                 <div className="text-4xl font-bold text-green-600 mb-3">{item.icon}</div>
-                <h3 className="text-xl font-bold text-eco-green-dark mb-2">Step {item.step}</h3>
+                <h3 className="text-xl font-bold text-eco-green-dark mb-2">{t('schemes.step')} {item.step}</h3>
                 <h4 className="font-semibold text-gray-800 mb-2">{item.title}</h4>
                 <p className="text-gray-600 text-sm">{item.description}</p>
               </div>
@@ -310,16 +312,16 @@ const GovernmentSchemesPage = () => {
           <div className="mt-12 bg-blue-50 border-2 border-blue-200 rounded-2xl p-8">
             <h3 className="text-2xl font-bold text-eco-green-dark mb-6 flex items-center gap-2">
               <FileText className="w-6 h-6" />
-              Required Documents
+              {t('schemes.requiredDocs')}
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {[
-                "Aadhar Card / Voter ID",
-                "Land Records (Jamabandi/Patta)",
-                "Bank Account Details",
-                "Mobile Number & Email",
-                "Passport Size Photo",
-                "Income Certificate (if applicable)",
+                t('schemes.doc1'),
+                t('schemes.doc2'),
+                t('schemes.doc3'),
+                t('schemes.doc4'),
+                t('schemes.doc5'),
+                t('schemes.doc6'),
               ].map((doc, index) => (
                 <div key={index} className="flex items-center gap-3">
                   <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0" />
@@ -331,19 +333,19 @@ const GovernmentSchemesPage = () => {
 
           {/* Contact Info */}
           <div className="mt-12 bg-gradient-to-r from-green-600 to-teal-600 text-white rounded-2xl p-8">
-            <h3 className="text-2xl font-bold mb-6">📞 Need Help?</h3>
+            <h3 className="text-2xl font-bold mb-6">{t('schemes.needHelp')}</h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div>
-                <p className="font-semibold mb-2">Agriculture Ministry Helpline</p>
-                <p className="text-lg">1800-180-1551</p>
+                <p className="font-semibold mb-2">{t('schemes.helplineTitle')}</p>
+                <p className="text-lg">{t('schemes.helplineNumber')}</p>
               </div>
               <div>
-                <p className="font-semibold mb-2">Official Portal</p>
-                <p className="text-lg">pmkisan.gov.in</p>
+                <p className="font-semibold mb-2">{t('schemes.officialPortal')}</p>
+                <p className="text-lg">{t('schemes.officialPortalUrl')}</p>
               </div>
               <div>
-                <p className="font-semibold mb-2">Local Agriculture Office</p>
-                <p className="text-lg">Visit your nearest office</p>
+                <p className="font-semibold mb-2">{t('schemes.localOffice')}</p>
+                <p className="text-lg">{t('schemes.localOfficeDesc')}</p>
               </div>
             </div>
           </div>
