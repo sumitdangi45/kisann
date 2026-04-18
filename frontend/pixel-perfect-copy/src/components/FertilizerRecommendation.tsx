@@ -529,6 +529,15 @@ function FertilizerRecommendation() {
                         <span className="font-semibold">Summary:</span> {item.data.summary}
                       </p>
                     </div>
+
+                    {/* Note if using fallback */}
+                    {item.data.note && (
+                      <div className="bg-yellow-50 p-4 rounded-lg border-2 border-yellow-300 mt-4">
+                        <p className="text-yellow-800 text-sm">
+                          ⚠️ <span className="font-semibold">Note:</span> {item.data.note}
+                        </p>
+                      </div>
+                    )}
                   </>
                 ) : (
                   <div className="bg-red-50 border-2 border-red-300 rounded-lg p-6">

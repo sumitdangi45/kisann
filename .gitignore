@@ -38,3 +38,11 @@ build/
 
 # Uploads
 uploads/
+
+# Large Model Files
+*.pth
+*.pkl
+
+# Raw datasets
+Data-raw/
+backend/Data-raw/
