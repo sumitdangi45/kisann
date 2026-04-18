@@ -1,0 +1,14 @@
+numpy
+pandas
+Flask
+Flask-CORS
+scikit-learn
+requests
+Pillow
+markupsafe
+python-dotenv
+google-generativeai
+openai
+PyPDF2
+pytesseract
+pdf2image
