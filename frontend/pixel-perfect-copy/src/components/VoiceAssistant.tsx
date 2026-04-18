@@ -1,5 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { Mic, Send, Volume2, Copy, Loader } from 'lucide-react';
+import { useLanguage } from '@/context/LanguageContext';
 
 interface Message {
   id: string;
@@ -10,11 +11,12 @@ interface Message {
 }
 
 const VoiceAssistant: React.FC = () => {
+  const { t, language: contextLanguage } = useLanguage();
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputText, setInputText] = useState('');
   const [isListening, setIsListening] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [language, setLanguage] = useState<'en' | 'hi'>('en');
+  const [language, setLanguage] = useState<'en' | 'hi'>(contextLanguage === 'hi' ? 'hi' : 'en');
   const [cropName, setCropName] = useState('');
   const [location, setLocation] = useState('');
   const recognitionRef = useRef<any>(null);
@@ -164,43 +166,43 @@ const VoiceAssistant: React.FC = () => {
               <Mic className="w-10 h-10 text-white" />
             </div>
           </div>
-          <h1 className="text-4xl font-bold text-gray-800 mb-2">🎤 Farming AI Assistant</h1>
-          <p className="text-gray-600">Ask any farming question in voice or text</p>
+          <h1 className="text-4xl font-bold text-gray-800 mb-2">{t('voice.title')}</h1>
+          <p className="text-gray-600">{t('voice.subtitle')}</p>
         </div>
 
         {/* Settings */}
         <div className="bg-white rounded-lg shadow-md p-6 mb-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Language</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">{t('voice.language')}</label>
               <select
                 value={language}
                 onChange={(e) => setLanguage(e.target.value as 'en' | 'hi')}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
               >
-                <option value="en">English</option>
-                <option value="hi">Hindi</option>
+                <option value="en">{t('voice.english')}</option>
+                <option value="hi">{t('voice.hindi')}</option>
               </select>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Crop (Optional)</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">{t('voice.crop')}</label>
               <input
                 type="text"
                 value={cropName}
                 onChange={(e) => setCropName(e.target.value)}
-                placeholder="e.g., moong, rice"
+                placeholder={t('voice.cropPlaceholder')}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Location (Optional)</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">{t('voice.location')}</label>
               <input
                 type="text"
                 value={location}
                 onChange={(e) => setLocation(e.target.value)}
-                placeholder="e.g., Delhi, Punjab"
+                placeholder={t('voice.locationPlaceholder')}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
               />
             </div>
@@ -216,7 +218,7 @@ const VoiceAssistant: React.FC = () => {
                 <p className="text-gray-500 text-lg">
                   {language === 'hi'
                     ? 'Apna sawaal poochein...'
-                    : 'Ask your farming question...'}
+                    : t('voice.askQuestion')}
                 </p>
               </div>
             </div>
@@ -240,13 +242,13 @@ const VoiceAssistant: React.FC = () => {
                         onClick={() => speakText(displayText(message))}
                         className="text-xs opacity-70 hover:opacity-100 flex items-center gap-1"
                       >
-                        <Volume2 className="w-3 h-3" /> Speak
+                        <Volume2 className="w-3 h-3" /> {t('voice.speak')}
                       </button>
                       <button
                         onClick={() => copyToClipboard(displayText(message))}
                         className="text-xs opacity-70 hover:opacity-100 flex items-center gap-1"
                       >
-                        <Copy className="w-3 h-3" /> Copy
+                        <Copy className="w-3 h-3" /> {t('voice.copy')}
                       </button>
                     </div>
                   </div>
@@ -275,7 +277,7 @@ const VoiceAssistant: React.FC = () => {
               placeholder={
                 language === 'hi'
                   ? 'Apna sawaal likhen ya bolein...'
-                  : 'Type or speak your question...'
+                  : t('voice.typeOrSpeak')
               }
               className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
@@ -289,7 +291,7 @@ const VoiceAssistant: React.FC = () => {
               }`}
             >
               <Mic className="w-5 h-5" />
-              {isListening ? 'Stop' : 'Speak'}
+              {isListening ? t('voice.stop') : t('voice.speak')}
             </button>
 
             <button
@@ -298,17 +300,17 @@ const VoiceAssistant: React.FC = () => {
               className="px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-gray-400 transition flex items-center gap-2"
             >
               <Send className="w-5 h-5" />
-              Send
+              {t('voice.send')}
             </button>
           </div>
 
           {/* Quick Questions */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
             {[
-              { text: language === 'hi' ? 'Paani kaise dein?' : 'How to water?', type: 'watering' },
-              { text: language === 'hi' ? 'Khad kaise lagayen?' : 'How to fertilize?', type: 'fertilizer' },
-              { text: language === 'hi' ? 'Keede se kaise bachein?' : 'Pest control?', type: 'pest_control' },
-              { text: language === 'hi' ? 'Kaatne ka samay?' : 'When to harvest?', type: 'harvest' },
+              { text: language === 'hi' ? 'Paani kaise dein?' : t('voice.howToWater'), type: 'watering' },
+              { text: language === 'hi' ? 'Khad kaise lagayen?' : t('voice.howToFertilize'), type: 'fertilizer' },
+              { text: language === 'hi' ? 'Keede se kaise bachein?' : t('voice.pestControl'), type: 'pest_control' },
+              { text: language === 'hi' ? 'Kaatne ka samay?' : t('voice.whenToHarvest'), type: 'harvest' },
             ].map((quick) => (
               <button
                 key={quick.type}
@@ -324,9 +326,9 @@ const VoiceAssistant: React.FC = () => {
         {/* Info */}
         <div className="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
           <p className="text-sm text-blue-800">
-            💡 <strong>Tip:</strong> {language === 'hi' 
+            💡 <strong>{t('voice.tip')}</strong> {language === 'hi' 
               ? 'Apne crop ka naam aur location batayein taaki AI aapko better jawab de sake.'
-              : 'Tell the AI your crop name and location for better answers.'}
+              : t('voice.tipText')}
           </p>
         </div>
       </div>

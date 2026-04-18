@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Cloud, CloudRain, Droplets, Wind, AlertCircle, Leaf } from 'lucide-react';
+import { useLanguage } from '@/context/LanguageContext';
 
 interface Alert {
   type: string;
@@ -30,6 +31,7 @@ interface WeatherData {
 }
 
 const Weather: React.FC = () => {
+  const { t } = useLanguage();
   const [city, setCity] = useState('Delhi');
   const [weatherData, setWeatherData] = useState<WeatherData | null>(null);
   const [alerts, setAlerts] = useState<Alert[]>([]);
@@ -148,8 +150,8 @@ const Weather: React.FC = () => {
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-gray-800 mb-2">🌤️ Weather & Alerts</h1>
-          <p className="text-gray-600">Get real-time weather alerts for your farming</p>
+          <h1 className="text-4xl font-bold text-gray-800 mb-2">{t('weather.title')}</h1>
+          <p className="text-gray-600">{t('weather.subtitle')}</p>
         </div>
 
         {/* Location Input */}
@@ -157,13 +159,13 @@ const Weather: React.FC = () => {
           <div className="flex gap-4 flex-wrap">
             <div className="flex-1 min-w-[250px]">
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Enter City Name
+                {t('weather.enterCity')}
               </label>
               <input
                 type="text"
                 value={city}
                 onChange={(e) => setCity(e.target.value)}
-                placeholder="e.g., Delhi, Mumbai, Bangalore"
+                placeholder={t('weather.placeholder')}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
               />
             </div>
@@ -173,7 +175,7 @@ const Weather: React.FC = () => {
                 disabled={loading}
                 className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-gray-400 transition"
               >
-                {loading ? 'Loading...' : 'Get Weather'}
+                {loading ? t('weather.loading') : t('weather.getWeather')}
               </button>
             </div>
           </div>
@@ -192,7 +194,7 @@ const Weather: React.FC = () => {
             {/* Temperature */}
             <div className="bg-white rounded-lg shadow-md p-6">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-gray-600 text-sm font-medium">Temperature</span>
+                <span className="text-gray-600 text-sm font-medium">{t('weather.temperature')}</span>
                 <Cloud className="w-5 h-5 text-blue-500" />
               </div>
               <p className="text-3xl font-bold text-gray-800">
@@ -204,46 +206,46 @@ const Weather: React.FC = () => {
             {/* Humidity */}
             <div className="bg-white rounded-lg shadow-md p-6">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-gray-600 text-sm font-medium">Humidity</span>
+                <span className="text-gray-600 text-sm font-medium">{t('weather.humidity')}</span>
                 <Droplets className="w-5 h-5 text-blue-400" />
               </div>
               <p className="text-3xl font-bold text-gray-800">{weatherData.humidity}%</p>
               <p className="text-xs text-gray-500 mt-2">
                 {weatherData.humidity > 80
-                  ? 'High - Disease Risk'
+                  ? t('weather.highDisease')
                   : weatherData.humidity < 30
-                  ? 'Low - Pest Risk'
-                  : 'Normal'}
+                  ? t('weather.lowPest')
+                  : t('weather.normal')}
               </p>
             </div>
 
             {/* Rainfall */}
             <div className="bg-white rounded-lg shadow-md p-6">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-gray-600 text-sm font-medium">Rainfall</span>
+                <span className="text-gray-600 text-sm font-medium">{t('weather.rainfall')}</span>
                 <CloudRain className="w-5 h-5 text-blue-600" />
               </div>
               <p className="text-3xl font-bold text-gray-800">{weatherData.rainfall}mm</p>
               <p className="text-xs text-gray-500 mt-2">
                 {weatherData.rainfall > 50
-                  ? 'Heavy Rain'
+                  ? t('weather.heavyRain')
                   : weatherData.rainfall > 20
-                  ? 'Moderate'
-                  : 'Light'}
+                  ? t('weather.moderate')
+                  : t('weather.light')}
               </p>
             </div>
 
             {/* Wind Speed */}
             <div className="bg-white rounded-lg shadow-md p-6">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-gray-600 text-sm font-medium">Wind Speed</span>
+                <span className="text-gray-600 text-sm font-medium">{t('weather.windSpeed')}</span>
                 <Wind className="w-5 h-5 text-gray-500" />
               </div>
               <p className="text-3xl font-bold text-gray-800">
                 {weatherData.wind_speed} km/h
               </p>
               <p className="text-xs text-gray-500 mt-2">
-                {weatherData.wind_speed > 40 ? 'Strong' : 'Moderate'}
+                {weatherData.wind_speed > 40 ? t('weather.strong') : t('weather.moderate')}
               </p>
             </div>
           </div>
@@ -255,13 +257,13 @@ const Weather: React.FC = () => {
             <div className="flex items-start gap-3">
               <Leaf className="w-6 h-6 text-green-600 flex-shrink-0 mt-1" />
               <div className="flex-1">
-                <h3 className="font-semibold text-green-800 mb-2">Farming Recommendation</h3>
+                <h3 className="font-semibold text-green-800 mb-2">{t('weather.recommendation')}</h3>
                 <p className="text-green-700">{weatherData.recommendation}</p>
                 <button
                   onClick={() => speakText(weatherData.recommendation)}
                   className="mt-3 px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 text-sm transition"
                 >
-                  🔊 Speak
+                  {t('weather.speak')}
                 </button>
               </div>
             </div>
@@ -273,7 +275,7 @@ const Weather: React.FC = () => {
           <div className="mb-6">
             <h2 className="text-2xl font-bold text-gray-800 mb-4 flex items-center gap-2">
               <AlertCircle className="w-6 h-6 text-red-500" />
-              Weather Alerts ({alerts.length})
+              {t('weather.alerts')} ({alerts.length})
             </h2>
             <div className="grid grid-cols-1 gap-4">
               {alerts.map((alert, index) => (
@@ -294,7 +296,7 @@ const Weather: React.FC = () => {
                   <p className="mb-3">{alert.message}</p>
 
                   <div className="mb-3">
-                    <p className="font-semibold text-sm mb-2">Recommendations:</p>
+                    <p className="font-semibold text-sm mb-2">{t('weather.recommendations')}</p>
                     <ul className="list-disc list-inside space-y-1">
                       {alert.recommendations.map((rec, i) => (
                         <li key={i} className="text-sm">
@@ -305,7 +307,7 @@ const Weather: React.FC = () => {
                   </div>
 
                   <div className="mb-3">
-                    <p className="font-semibold text-sm mb-2">Affected Crops:</p>
+                    <p className="font-semibold text-sm mb-2">{t('weather.affectedCrops')}</p>
                     <div className="flex flex-wrap gap-2">
                       {alert.affected_crops.map((crop, i) => (
                         <span
@@ -320,7 +322,7 @@ const Weather: React.FC = () => {
 
                   {alert.action_required && (
                     <div className="bg-white bg-opacity-30 px-3 py-2 rounded text-sm font-semibold">
-                      ⚠️ Action Required
+                      {t('weather.actionRequired')}
                     </div>
                   )}
 
@@ -328,7 +330,7 @@ const Weather: React.FC = () => {
                     onClick={() => speakText(alert.message)}
                     className="mt-3 px-3 py-1 bg-white bg-opacity-50 rounded text-xs font-medium hover:bg-opacity-70 transition"
                   >
-                    🔊 Speak Alert
+                    {t('weather.speakAlert')}
                   </button>
                 </div>
               ))}
@@ -338,12 +340,12 @@ const Weather: React.FC = () => {
 
         {/* Crop-Specific Alerts */}
         <div className="bg-white rounded-lg shadow-md p-6">
-          <h2 className="text-2xl font-bold text-gray-800 mb-4">🌾 Crop-Specific Alerts</h2>
+          <h2 className="text-2xl font-bold text-gray-800 mb-4">{t('weather.cropAlerts')}</h2>
 
           <div className="flex gap-4 mb-6 flex-wrap">
             <div className="flex-1 min-w-[200px]">
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Select Crop
+                {t('weather.selectCrop')}
               </label>
               <select
                 value={selectedCrop}
@@ -363,7 +365,7 @@ const Weather: React.FC = () => {
                 disabled={loading || !weatherData}
                 className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 transition"
               >
-                {loading ? 'Loading...' : 'Get Crop Alerts'}
+                {loading ? t('weather.loading') : t('weather.getCropAlerts')}
               </button>
             </div>
           </div>
@@ -392,7 +394,7 @@ const Weather: React.FC = () => {
                     onClick={() => speakText(`${alert.issue}. ${alert.action}`)}
                     className="px-3 py-1 bg-white bg-opacity-50 rounded text-xs font-medium hover:bg-opacity-70 transition"
                   >
-                    🔊 Speak
+                    {t('weather.speak')}
                   </button>
                 </div>
               ))}
@@ -402,7 +404,7 @@ const Weather: React.FC = () => {
           {showCropAlerts && cropAlerts.length === 0 && (
             <div className="bg-green-50 border border-green-200 rounded-lg p-4 text-center">
               <p className="text-green-700 font-semibold">
-                ✅ No specific alerts for {selectedCrop}. Conditions are favorable!
+                ✅ {t('weather.noAlerts')} {selectedCrop}. {t('weather.favorable')}
               </p>
             </div>
           )}

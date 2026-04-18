@@ -3,7 +3,10 @@ import img_Mhw4Eau4SAtUmFkxH5ewmAEaQ_png from "../assets/external/Mhw4Eau4SAtUmF
 import img_n0ubmpXvD4ICvgzDIZrK5K9M34_png from "../assets/external/n0ubmpXvD4ICvgzDIZrK5K9M34.png";
 import img_img_3asBCYsTkBpYP2kVZvdwZvz2sA_png from "../assets/external/3asBCYsTkBpYP2kVZvdwZvz2sA.png";
 import img_img_8oxMLPshpp29p0ct5o4EsY6q0_jpg from "../assets/external/8oxMLPshpp29p0ct5o4EsY6q0.jpg";
+import { useLanguage } from "@/context/LanguageContext";
+
 const YellowBanner = () => {
+  const { t } = useLanguage();
   return (
     <section className="relative bg-eco-yellow py-10 overflow-hidden">
       {/* Decorative vegetable pattern overlay */}
@@ -22,7 +25,7 @@ const YellowBanner = () => {
           </div>
           <div>
             <h3 className="font-heading text-xl md:text-2xl font-bold text-eco-green-dark leading-tight">
-              100K+ Client With <br /> Positive Reviews
+              {t('banner.clientsReview')}
             </h3>
           </div>
         </div>
@@ -40,7 +43,7 @@ const YellowBanner = () => {
                 />
                 <text className="text-[11px] font-bold fill-eco-green-dark uppercase tracking-[3px]">
                   <textPath href="#textCircle" className="fill-current text-eco-green-dark">
-                    ✦ Organic ✦ Farming ✦ Vegetables ✦ Agro
+                    ✦ {t('banner.organic')} ✦ {t('banner.farming')} ✦ {t('banner.vegetables')} ✦ {t('banner.agro')}
                   </textPath>
                 </text>
               </svg>
@@ -55,7 +58,7 @@ const YellowBanner = () => {
         <div className="flex items-center gap-5">
           <div>
             <h3 className="font-heading text-xl md:text-2xl font-bold text-eco-green-dark leading-tight">
-              Healthy Life With <br /> Fresh Products
+              {t('banner.healthyLife')}
             </h3>
           </div>
           <div className="relative w-44 h-28 rounded-xl overflow-hidden flex-shrink-0">

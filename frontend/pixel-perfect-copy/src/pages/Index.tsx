@@ -1,16 +1,11 @@
 import Navbar from "@/components/Navbar";
 import Hero from "@/components/Hero";
-import YellowBanner from "@/components/YellowBanner";
-import Services from "@/components/Services";
 import About from "@/components/About";
-import Projects from "@/components/Projects";
 import HowWeWork from "@/components/HowWeWork";
-import Team from "@/components/Team";
-import Testimonials from "@/components/Testimonials";
 import FAQ from "@/components/FAQ";
-import Blog from "@/components/Blog";
 import Footer from "@/components/Footer";
 import KisanSathiServicesSection from "@/components/KisanSathiServicesSection";
+import ShopPreview from "@/components/ShopPreview";
 
 const Index = () => {
   return (
@@ -18,15 +13,10 @@ const Index = () => {
       <Navbar />
       <Hero />
       <KisanSathiServicesSection />
-      <YellowBanner />
-      <Services />
+      <ShopPreview />
       <About />
-      <Projects />
       <HowWeWork />
-      <Team />
-      <Testimonials />
       <FAQ />
-      <Blog />
       <Footer />
     </div>
   );

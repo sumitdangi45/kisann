@@ -2,6 +2,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { ShoppingCart, ExternalLink, Mic } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useLanguage } from "@/context/LanguageContext";
 
 const products = [
   { 
@@ -92,6 +93,7 @@ const products = [
 
 const ShopPage = () => {
   const navigate = useNavigate();
+  const { t } = useLanguage();
   return (
     <div className="min-h-screen">
       <Navbar />
@@ -106,10 +108,10 @@ const ShopPage = () => {
         <div className="absolute inset-0 bg-black/40" />
         <div className="relative z-10 max-w-7xl mx-auto px-6 lg:px-16 w-full">
           <h1 className="font-heading text-5xl md:text-7xl font-bold text-primary-foreground mb-4">
-            🧪 Agricultural Medicines & Fertilizers
+            {t('shop.pageTitle')}
           </h1>
           <p className="text-primary-foreground/80 text-lg md:text-xl max-w-lg">
-            Quality pesticides, fertilizers, and bio-products for healthy crops
+            {t('shop.pageSubtitle')}
           </p>
         </div>
       </section>
@@ -147,7 +149,7 @@ const ShopPage = () => {
                       className="flex-1 inline-flex items-center justify-center gap-2 bg-yellow-500 hover:bg-yellow-600 text-white font-semibold py-2 px-3 rounded-lg transition-all text-sm"
                     >
                       <ShoppingCart className="w-4 h-4" />
-                      Amazon
+                      {t('shop.buyAmazon')}
                       <ExternalLink className="w-3 h-3" />
                     </a>
                     <a
@@ -157,7 +159,7 @@ const ShopPage = () => {
                       className="flex-1 inline-flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-3 rounded-lg transition-all text-sm"
                     >
                       <ShoppingCart className="w-4 h-4" />
-                      Flipkart
+                      {t('shop.buyFlipkart')}
                       <ExternalLink className="w-3 h-3" />
                     </a>
                   </div>
