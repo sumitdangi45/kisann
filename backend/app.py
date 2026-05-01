@@ -34,85 +34,109 @@ from PIL import Image
 import hashlib
 import base64
 
+# ── Load trained fertilizer model ────────────────────────────────────────────
+fertilizer_ml_model = None
+fertilizer_soil_enc = None
+fertilizer_crop_enc = None
+fertilizer_label_enc = None
+fertilizer_feature_info = None
+
+try:
+    fertilizer_ml_model    = pickle.load(open('models/fertilizer_model.pkl', 'rb'))
+    fertilizer_soil_enc    = pickle.load(open('models/fertilizer_soil_encoder.pkl', 'rb'))
+    fertilizer_crop_enc    = pickle.load(open('models/fertilizer_crop_encoder.pkl', 'rb'))
+    fertilizer_label_enc   = pickle.load(open('models/fertilizer_label_encoder.pkl', 'rb'))
+    fertilizer_feature_info = pickle.load(open('models/fertilizer_feature_info.pkl', 'rb'))
+    print("✅ Fertilizer ML model loaded successfully!")
+    print(f"   Fertilizers: {fertilizer_feature_info['fertilizers']}")
+except Exception as e:
+    print(f"⚠️  Fertilizer ML model not found, using rule-based fallback: {e}")
+
+# ── Load PlantVillage MobileNetV2 disease model ───────────────────────────────
 TORCH_AVAILABLE = False
-
-# Simple disease detection using image hash (mock ML model)
-def simple_disease_classifier(img_data):
-    """
-    Simple disease classifier based on image characteristics
-    Returns a disease class based on image analysis
-    """
-    # Create a hash of the image to get a pseudo-random but consistent result
-    img_hash = hashlib.md5(img_data).hexdigest()
-    hash_int = int(img_hash, 16)
-    
-    # Map to disease classes
-    disease_list = [
-        'Tomato___healthy',
-        'Tomato___Early_blight',
-        'Tomato___Late_blight',
-        'Potato___healthy',
-        'Potato___Early_blight',
-        'Apple___healthy',
-        'Apple___Apple_scab',
-        'Corn_(maize)___healthy',
-        'Grape___healthy',
-        'Pepper,_bell___healthy',
-    ]
-    
-    return disease_list[hash_int % len(disease_list)]
-# ==============================================================================================
-
-# -------------------------LOADING THE TRAINED MODELS -----------------------------------------------
-
-# Loading plant disease classification model
-
-disease_classes = ['Apple___Apple_scab',
-                   'Apple___Black_rot',
-                   'Apple___Cedar_apple_rust',
-                   'Apple___healthy',
-                   'Blueberry___healthy',
-                   'Cherry_(including_sour)___Powdery_mildew',
-                   'Cherry_(including_sour)___healthy',
-                   'Corn_(maize)___Cercospora_leaf_spot Gray_leaf_spot',
-                   'Corn_(maize)___Common_rust_',
-                   'Corn_(maize)___Northern_Leaf_Blight',
-                   'Corn_(maize)___healthy',
-                   'Grape___Black_rot',
-                   'Grape___Esca_(Black_Measles)',
-                   'Grape___Leaf_blight_(Isariopsis_Leaf_Spot)',
-                   'Grape___healthy',
-                   'Orange___Haunglongbing_(Citrus_greening)',
-                   'Peach___Bacterial_spot',
-                   'Peach___healthy',
-                   'Pepper,_bell___Bacterial_spot',
-                   'Pepper,_bell___healthy',
-                   'Potato___Early_blight',
-                   'Potato___Late_blight',
-                   'Potato___healthy',
-                   'Raspberry___healthy',
-                   'Soybean___healthy',
-                   'Squash___Powdery_mildew',
-                   'Strawberry___Leaf_scorch',
-                   'Strawberry___healthy',
-                   'Tomato___Bacterial_spot',
-                   'Tomato___Early_blight',
-                   'Tomato___Late_blight',
-                   'Tomato___Leaf_Mold',
-                   'Tomato___Septoria_leaf_spot',
-                   'Tomato___Spider_mites Two-spotted_spider_mite',
-                   'Tomato___Target_Spot',
-                   'Tomato___Tomato_Yellow_Leaf_Curl_Virus',
-                   'Tomato___Tomato_mosaic_virus',
-                   'Tomato___healthy']
-
 disease_model = None
-if TORCH_AVAILABLE:
-    disease_model_path = 'models/plant_disease_model.pth'
-    disease_model = ResNet9(3, len(disease_classes))
-    disease_model.load_state_dict(torch.load(
-        disease_model_path, map_location=torch.device('cpu')))
-    disease_model.eval()
+disease_class_names = []
+
+try:
+    import torch
+    import torch.nn as nn
+    from torchvision import models, transforms
+
+    with open('models/class_names.json') as f:
+        disease_class_names = json.load(f)
+
+    _m = models.mobilenet_v2(weights=None)
+    _m.classifier[1] = nn.Sequential(
+        nn.Dropout(0.2),
+        nn.Linear(_m.classifier[1].in_features, 38)
+    )
+    _m.load_state_dict(torch.load('models/mobilenetv2_plant.pth', map_location='cpu'))
+    _m.eval()
+    disease_model = _m
+    TORCH_AVAILABLE = True
+
+    _disease_transform = transforms.Compose([
+        transforms.Resize((224, 224)),
+        transforms.ToTensor(),
+        transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
+    ])
+
+    print(f"✅ PlantVillage MobileNetV2 disease model loaded! ({len(disease_class_names)} classes)")
+except Exception as e:
+    print(f"⚠️  Disease model load error: {e}")
+
+# ── Load Rice Leaf Disease model ──────────────────────────────────────────────
+rice_disease_model = None
+rice_disease_classes = []
+
+try:
+    import torch, torch.nn as nn
+    from torchvision import models, transforms
+    with open('models/rice_disease_info.json') as f:
+        _rice_info = json.load(f)
+    rice_disease_classes = _rice_info['classes']
+
+    _rm = models.mobilenet_v2(weights=None)
+    _rm.classifier[1] = nn.Sequential(
+        nn.Dropout(0.3),
+        nn.Linear(_rm.classifier[1].in_features, len(rice_disease_classes))
+    )
+    _rm.load_state_dict(torch.load('models/rice_disease_model.pth', map_location='cpu'))
+    _rm.eval()
+    rice_disease_model = _rm
+
+    _rice_transform = transforms.Compose([
+        transforms.Resize((224, 224)),
+        transforms.ToTensor(),
+        transforms.Normalize([0.485,0.456,0.406],[0.229,0.224,0.225])
+    ])
+    print(f"✅ Rice disease model loaded! Classes: {rice_disease_classes}")
+except Exception as e:
+    print(f"⚠️  Rice disease model load error: {e}")
+
+# ── predict_image using MobileNetV2 ──────────────────────────────────────────
+def predict_image(img_data, model=None):
+    """
+    Predict plant disease from image bytes.
+    Returns (class_name, confidence) tuple.
+    Uses MobileNetV2 PlantVillage model when available.
+    """
+    if TORCH_AVAILABLE and disease_model is not None:
+        try:
+            import torch
+            image = Image.open(io.BytesIO(img_data)).convert('RGB')
+            tensor = _disease_transform(image).unsqueeze(0)
+            with torch.no_grad():
+                out = disease_model(tensor)
+                probs = torch.softmax(out, dim=1)[0]
+                idx = probs.argmax().item()
+                confidence = float(probs[idx])
+            return disease_class_names[idx], confidence
+        except Exception as e:
+            print(f"MobileNetV2 inference error: {e}")
+
+    # Fallback
+    return 'Tomato___healthy', 0.0
 
 
 # Loading crop recommendation model
@@ -202,21 +226,6 @@ def weather_fetch(city_name):
         # Return default values on error
         return 25.0, 60
 
-
-def predict_image(img, model=None):
-    """
-    Predicts disease from image
-    Uses simple classification when PyTorch is not available
-    :params: image
-    :return: prediction (string)
-    """
-    if not TORCH_AVAILABLE or model is None:
-        # Use simple classifier
-        return simple_disease_classifier(img)
-    
-    # PyTorch code would go here if available
-    return 'Tomato___healthy'
-
 # ===============================================================================================
 # ------------------------------------ FLASK APP -------------------------------------------------
 
@@ -269,7 +278,7 @@ def disease_prediction():
             return render_template('disease.html', title=title)
         try:
             img = file.read()
-            prediction = predict_image(img, disease_model)
+            prediction, _ = predict_image(img, disease_model)
             prediction = Markup(str(disease_dic[prediction]))
             return render_template('disease-result.html', prediction=prediction, title=title)
         except:
@@ -482,12 +491,13 @@ def api_disease_prediction():
             
             try:
                 img_data = file.read()
-                prediction = predict_image(img_data, disease_model)
+                prediction, confidence = predict_image(img_data, disease_model)
                 disease_info = disease_dic.get(prediction, 'Disease not found')
                 
                 predictions.append({
                     'filename': file.filename,
                     'disease': prediction,
+                    'confidence': round(confidence * 100, 1),
                     'info': disease_info,
                     'success': True
                 })
@@ -519,6 +529,57 @@ def api_disease_prediction():
             'summary': f'Analyzed {len(predictions)} images. Most common disease: {most_common_disease}'
         })
     except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 400
+
+# API: Rice Leaf Disease Detection
+@app.route('/api/rice-disease-predict', methods=['POST'])
+def api_rice_disease_predict():
+    try:
+        if 'file' not in request.files:
+            return jsonify({'success': False, 'error': 'No file provided'}), 400
+
+        file = request.files['file']
+        if not file or file.filename == '':
+            return jsonify({'success': False, 'error': 'No file selected'}), 400
+
+        if rice_disease_model is None:
+            return jsonify({'success': False, 'error': 'Rice disease model not loaded'}), 500
+
+        img_data = file.read()
+
+        import torch
+        image = Image.open(io.BytesIO(img_data)).convert('RGB')
+        tensor = _rice_transform(image).unsqueeze(0)
+        with torch.no_grad():
+            out   = rice_disease_model(tensor)
+            probs = torch.softmax(out, dim=1)[0]
+            idx   = probs.argmax().item()
+            confidence = float(probs[idx])
+
+        disease = rice_disease_classes[idx]
+
+        # All class confidences
+        all_probs = {rice_disease_classes[i]: round(float(probs[i]) * 100, 1)
+                     for i in range(len(rice_disease_classes))}
+
+        rice_disease_info = {
+            'Bacterial leaf blight': 'Bacterial disease caused by Xanthomonas oryzae. Leaves show water-soaked to yellowish stripes. Treat with copper-based bactericides and avoid excess nitrogen.',
+            'Brown spot':            'Fungal disease caused by Cochliobolus miyabeanus. Brown oval spots on leaves. Apply Mancozeb or Tricyclazole fungicide. Ensure balanced potassium nutrition.',
+            'Leaf smut':             'Fungal disease caused by Entyloma oryzae. Small, angular, black spots on leaves. Use certified disease-free seeds and apply Propiconazole fungicide.'
+        }
+
+        return jsonify({
+            'success':     True,
+            'disease':     disease,
+            'confidence':  round(confidence * 100, 1),
+            'all_probabilities': all_probs,
+            'info':        rice_disease_info.get(disease, 'No info available'),
+            'is_rice':     True,
+            'filename':    file.filename
+        })
+
+    except Exception as e:
+        print(f"Rice disease prediction error: {e}")
         return jsonify({'success': False, 'error': str(e)}), 400
 
 # API: Soil Report PDF Upload and Analysis
@@ -774,26 +835,98 @@ def api_crop_prediction_partial():
 def api_fertilizer_recommendation():
     try:
         data = request.get_json()
-        
-        crop = data.get('crop')
-        nitrogen = data.get('nitrogen')
+
+        crop      = data.get('crop', '').strip()
+        nitrogen  = data.get('nitrogen')
         phosphorus = data.get('phosphorus')
-        potassium = data.get('potassium')
-        
+        potassium  = data.get('potassium')
+        soil_type  = data.get('soil_type', 'Loamy').strip().title()
+        temperature = data.get('temperature', 30.0)
+        humidity    = data.get('humidity', 60.0)
+        moisture    = data.get('moisture', 45.0)
+
         if not crop:
             return jsonify({'success': False, 'error': 'Crop name is required'}), 400
-        
         if nitrogen is None or phosphorus is None or potassium is None:
             return jsonify({'success': False, 'error': 'Nitrogen, Phosphorus, and Potassium values are required'}), 400
-        
-        # Get fertilizer recommendation
-        recommendation = recommend_fertilizer(crop, nitrogen, phosphorus, potassium)
-        
-        if not recommendation.get('success'):
-            return jsonify(recommendation), 400
-        
-        return jsonify(recommendation)
-    
+
+        ml_fertilizer = None
+        ml_used = False
+
+        # ── Try ML model first ────────────────────────────────────────────────
+        if fertilizer_ml_model is not None:
+            try:
+                crop_title = crop.strip().title()
+                soil_title = soil_type.strip().title()
+
+                known_soils = fertilizer_feature_info['soil_types']
+                known_crops = fertilizer_feature_info['crop_types']
+
+                if soil_title not in known_soils:
+                    soil_title = known_soils[0]
+                if crop_title not in known_crops:
+                    crop_title = known_crops[0]
+
+                soil_enc = fertilizer_soil_enc.transform([soil_title])[0]
+                crop_enc = fertilizer_crop_enc.transform([crop_title])[0]
+
+                N, P, K = float(nitrogen), float(phosphorus), float(potassium)
+                n_p_ratio  = N / (P + 1)
+                n_k_ratio  = N / (K + 1)
+                npk_total  = N + P + K
+
+                features = np.array([[
+                    float(temperature), float(humidity), float(moisture),
+                    soil_enc, crop_enc,
+                    N, K, P,
+                    n_p_ratio, n_k_ratio, npk_total
+                ]])
+
+                pred_enc = fertilizer_ml_model.predict(features)[0]
+                ml_fertilizer = fertilizer_label_enc.inverse_transform([pred_enc])[0]
+                ml_used = True
+            except Exception as e:
+                print(f"ML model prediction error: {e}")
+
+        # ── Rule-based recommendation (always computed for details) ───────────
+        rule_rec = recommend_fertilizer(crop, float(nitrogen), float(phosphorus), float(potassium))
+
+        if not rule_rec.get('success'):
+            # If crop not in rule DB, still return ML result if available
+            if ml_fertilizer:
+                return jsonify({
+                    'success': True,
+                    'crop': crop,
+                    'ml_fertilizer': ml_fertilizer,
+                    'ml_used': ml_used,
+                    'soil_status': {
+                        'nitrogen':   {'value': nitrogen,   'level': 'unknown'},
+                        'phosphorus': {'value': phosphorus, 'level': 'unknown'},
+                        'potassium':  {'value': potassium,  'level': 'unknown'},
+                    },
+                    'primary_deficiency': 'unknown',
+                    'primary_recommendation': {'fertilizer': ml_fertilizer, 'quantity': 'As per label', 'timing': 'At planting', 'reason': 'ML model recommendation', 'benefits': 'Balanced nutrition'},
+                    'secondary_recommendations': [],
+                    'summary': f"ML model recommends {ml_fertilizer} for {crop}."
+                })
+            return jsonify(rule_rec), 400
+
+        # Override fertilizer name with ML prediction if available
+        if ml_fertilizer:
+            rule_rec['primary_recommendation']['fertilizer'] = ml_fertilizer
+            rule_rec['ml_fertilizer'] = ml_fertilizer
+            rule_rec['ml_used'] = True
+            rule_rec['summary'] = (
+                f"ML model recommends {ml_fertilizer} for {crop}. "
+                f"Soil has {rule_rec['soil_status']['nitrogen']['level']} nitrogen, "
+                f"{rule_rec['soil_status']['phosphorus']['level']} phosphorus, "
+                f"{rule_rec['soil_status']['potassium']['level']} potassium."
+            )
+        else:
+            rule_rec['ml_used'] = False
+
+        return jsonify(rule_rec)
+
     except Exception as e:
         print(f"Error in fertilizer recommendation: {e}")
         return jsonify({'success': False, 'error': str(e)}), 400
@@ -856,7 +989,8 @@ def api_fertilizer_from_image():
             'crop_identification': crop_identification,
             'fertilizer_recommendation': recommendation,
             'default_nutrients': default_nutrients,
-            'summary': f"Identified {identified_crop} from image. Recommended fertilizer: {recommendation['primary_recommendation']['fertilizer']}"
+            'summary': f"Identified {identified_crop} from image. Recommended fertilizer: {recommendation['primary_recommendation']['fertilizer']}",
+            'note': 'Crop identified using color analysis. For accurate results, add your GEMINI_API_KEY in backend/.env' if crop_identification.get('method') == 'color_heuristic' else None
         })
     
     except Exception as e:
