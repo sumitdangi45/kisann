@@ -8,7 +8,7 @@ const products = [
   { 
     name: "Neem Oil (Organic Pesticide)", 
     price: "₹250-350", 
-    image: "https://images.unsplash.com/photo-1584308666744-24d5f400f6f0?w=400&h=400&fit=crop",
+    image: "https://m.media-amazon.com/images/I/31Hjv+PFTtL._SX342_SY445_QL70_FMwebp_.jpg",
     amazon: "https://www.amazon.in/s?k=neem+oil+pesticide",
     flipkart: "https://www.flipkart.com/search?q=neem+oil+pesticide"
   },
@@ -22,7 +22,7 @@ const products = [
   { 
     name: "Urea Fertilizer (46% N)", 
     price: "₹500-700/50kg", 
-    image: "https://images.unsplash.com/photo-1625246333195-78d9c38ad576?w=400&h=400&fit=crop",
+    image: "https://m.media-amazon.com/images/I/617MOehEBaL._SX522_.jpg",
     amazon: "https://www.amazon.in/s?k=urea+fertilizer",
     flipkart: "https://www.flipkart.com/search?q=urea+fertilizer"
   },
