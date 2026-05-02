@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar, CheckCircle, AlertCircle, Upload, Plus, Trash2, Camera, Clock } from 'lucide-react';
+import { Calendar, CheckCircle, AlertCircle, Upload, Plus, Trash2, Camera, Clock, Bell } from 'lucide-react';
+import AlertBanner from './AlertBanner';
+import NotificationCenter from './NotificationCenter';
 
 interface Crop {
   id: string;
@@ -289,6 +291,9 @@ const SmartReminders: React.FC = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 p-6">
       <div className="max-w-7xl mx-auto">
+        {/* Alert Banner */}
+        <AlertBanner />
+
         {/* Header */}
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-gray-800 mb-2">📅 Smart Reminders</h1>

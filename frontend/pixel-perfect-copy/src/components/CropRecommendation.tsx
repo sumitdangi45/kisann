@@ -137,21 +137,57 @@ function CropRecommendation() {
         {result && (
           <div className="mt-8 bg-white rounded-lg shadow-lg p-8">
             {result.error ? (
-              <p className="text-red-600">{result.error}</p>
+              <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                <p className="text-red-600 font-semibold">Error</p>
+                <p className="text-red-500 text-sm">{result.error}</p>
+              </div>
             ) : (
               <div>
-                <h2 className="text-2xl font-bold text-eco-green-dark mb-4">Recommended Crop</h2>
-                <p className="text-3xl font-bold text-eco-green mb-6">{result.crop.toUpperCase()}</p>
+                <h2 className="text-2xl font-bold text-eco-green-dark mb-6">Top 5 Crop Recommendations</h2>
                 
+                {/* Top 5 Crops List */}
+                <div className="space-y-4 mb-8">
+                  {result.top_crops && result.top_crops.map((crop, index) => (
+                    <div key={index} className={`border-l-4 p-4 rounded-lg ${
+                      index === 0 ? 'border-eco-green bg-eco-cream' : 'border-gray-300 bg-gray-50'
+                    }`}>
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-3">
+                          <span className={`text-2xl font-bold ${index === 0 ? 'text-eco-green' : 'text-gray-400'}`}>
+                            #{crop.rank}
+                          </span>
+                          <div>
+                            <p className="text-xl font-bold text-eco-green-dark">{crop.crop.toUpperCase()}</p>
+                            <p className="text-sm text-gray-600">{crop.reason}</p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <p className={`text-2xl font-bold ${index === 0 ? 'text-eco-green' : 'text-gray-500'}`}>
+                            {crop.confidence_str}
+                          </p>
+                          <div className="w-24 h-2 bg-gray-200 rounded-full mt-2 overflow-hidden">
+                            <div 
+                              className={`h-full ${index === 0 ? 'bg-eco-green' : 'bg-gray-400'}`}
+                              style={{width: `${Math.min(crop.confidence, 100)}%`}}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                
+                {/* Primary Crop Explanation */}
                 {result.explanation && (
-                  <div className="bg-eco-cream rounded-lg p-6 mb-6">
-                    <h3 className="text-lg font-bold text-eco-green-dark mb-3">Why This Crop?</h3>
+                  <div className="bg-eco-cream rounded-lg p-6 mb-6 border-l-4 border-eco-green">
+                    <h3 className="text-lg font-bold text-eco-green-dark mb-3">Why {result.primary_crop.toUpperCase()}?</h3>
                     <div className="text-gray-700 whitespace-pre-wrap text-sm leading-relaxed">
                       {result.explanation}
                     </div>
                   </div>
                 )}
                 
+                {/* Weather Info */}
                 <div className="grid grid-cols-2 gap-4 text-sm">
                   <div className="bg-blue-50 p-4 rounded">
                     <p className="text-gray-600">Temperature</p>

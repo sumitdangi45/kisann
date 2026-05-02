@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Eye, EyeOff, Phone, User, Leaf, Mail, Lock } from "lucide-react";
+import { Eye, EyeOff, Phone, User, Mail, Lock } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -14,29 +14,17 @@ const AuthPage = () => {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   
+  // Signup states
+  const [signupStep, setSignupStep] = useState<"details" | "mobile">("details");
+  
   const [formData, setFormData] = useState({
     name: "",
-    email: "",
-    mobileNo: "",
-    agricultureType: "",
     password: "",
-    confirmPassword: "",
+    mobileNo: "",
+    username: "",
   });
 
-  const agricultureTypes = [
-    "🌾 Cereals (Rice, Wheat, Maize)",
-    "🥬 Vegetables (Tomato, Onion, Potato)",
-    "🌻 Cash Crops (Cotton, Sugarcane)",
-    "🍎 Fruits & Orchards",
-    "🌱 Organic Farming",
-    "🐄 Dairy & Livestock",
-    "🐟 Aquaculture",
-    "🍯 Beekeeping",
-    "🌿 Spices & Herbs",
-    "🥕 Mixed Farming",
-  ];
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
@@ -45,74 +33,74 @@ const AuthPage = () => {
     setError("");
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  // SIGNUP - Step 1: Name + Password
+  const handleSignupStep1 = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
-    setSuccess("");
+
+    if (!formData.name.trim()) {
+      setError("Please enter your name");
+      return;
+    }
+
+    if (!formData.password || formData.password.length < 6) {
+      setError("Password must be at least 6 characters");
+      return;
+    }
+
+    // Move to step 2
+    setSignupStep("mobile");
+  };
+
+  // SIGNUP - Step 2: Mobile Number
+  const handleSignupStep2 = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
     setLoading(true);
 
     try {
-      if (isLogin) {
-        const response = await fetch("http://localhost:5000/api/auth/login", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            mobile: formData.mobileNo,
-            password: formData.password,
-          }),
-        });
+      if (!formData.mobileNo || formData.mobileNo.length !== 10) {
+        setError("Please enter a valid 10-digit mobile number");
+        setLoading(false);
+        return;
+      }
 
-        const data = await response.json();
+      // Username = Name
+      const username = formData.name;
 
-        if (data.success) {
-          localStorage.setItem("token", data.token);
-          localStorage.setItem("user_id", data.user_id);
-          localStorage.setItem("user_name", data.name);
-          
-          setSuccess("Login successful! Redirecting...");
-          setTimeout(() => {
-            navigate("/");
-          }, 1500);
-        } else {
-          setError(data.error || "Login failed");
-        }
+      // Call backend to register
+      const response = await fetch("http://localhost:5000/api/auth/register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: formData.name,
+          username: username,
+          email: `${formData.mobileNo}@kisansathi.local`,
+          mobile: formData.mobileNo,
+          password: formData.password,
+          agriculture_type: "Crop Farming",
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        // Store JWT token and user info
+        localStorage.setItem("access_token", data.user_id);
+        localStorage.setItem("token", data.user_id);
+        localStorage.setItem("user_id", data.user_id);
+        localStorage.setItem("user_name", formData.name);
+        localStorage.setItem("username", username);
+        localStorage.setItem("token_type", "Bearer");
+        
+        setSuccess("Account created successfully! Redirecting...");
+        setTimeout(() => {
+          navigate("/");
+        }, 1500);
       } else {
-        if (formData.password !== formData.confirmPassword) {
-          setError("Passwords do not match!");
-          setLoading(false);
-          return;
-        }
-
-        const response = await fetch("http://localhost:5000/api/auth/register", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            name: formData.name,
-            email: formData.email,
-            mobile: formData.mobileNo,
-            agriculture_type: formData.agricultureType,
-            password: formData.password,
-          }),
-        });
-
-        const data = await response.json();
-
-        if (data.success) {
-          localStorage.setItem("token", data.token);
-          localStorage.setItem("user_id", data.user_id);
-          localStorage.setItem("user_name", data.name);
-          
-          setSuccess("Account created successfully! Redirecting...");
-          setTimeout(() => {
-            navigate("/");
-          }, 1500);
-        } else {
-          setError(data.error || "Registration failed");
-        }
+        setError(data.error || "Registration failed");
       }
     } catch (err) {
       setError("Connection error. Please try again.");
@@ -120,6 +108,74 @@ const AuthPage = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  // LOGIN - Mobile + Password
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+    setLoading(true);
+
+    try {
+      if (!formData.mobileNo || formData.mobileNo.length !== 10) {
+        setError("Please enter a valid 10-digit mobile number");
+        setLoading(false);
+        return;
+      }
+
+      if (!formData.password) {
+        setError("Please enter your password");
+        setLoading(false);
+        return;
+      }
+
+      const response = await fetch("http://localhost:5000/api/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          mobile: formData.mobileNo,
+          password: formData.password,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        // Store JWT token and user info
+        localStorage.setItem("access_token", data.access_token);
+        localStorage.setItem("token", data.user_id);
+        localStorage.setItem("user_id", data.user_id);
+        localStorage.setItem("user_name", data.name);
+        localStorage.setItem("username", data.username || data.name);
+        localStorage.setItem("token_type", data.token_type || "Bearer");
+        
+        setSuccess("Login successful! Redirecting...");
+        setTimeout(() => {
+          navigate("/");
+        }, 1500);
+      } else {
+        setError(data.error || "Login failed");
+      }
+    } catch (err) {
+      setError("Connection error. Please try again.");
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const resetSignup = () => {
+    setSignupStep("details");
+    setFormData({
+      name: "",
+      password: "",
+      mobileNo: "",
+      username: "",
+    });
+    setError("");
+    setSuccess("");
   };
 
   return (
@@ -152,8 +208,7 @@ const AuthPage = () => {
             <button
               onClick={() => {
                 setIsLogin(true);
-                setError("");
-                setSuccess("");
+                resetSignup();
               }}
               className={`flex-1 py-3 px-4 rounded-lg font-semibold transition-all duration-300 ${
                 isLogin
@@ -166,8 +221,7 @@ const AuthPage = () => {
             <button
               onClick={() => {
                 setIsLogin(false);
-                setError("");
-                setSuccess("");
+                resetSignup();
               }}
               className={`flex-1 py-3 px-4 rounded-lg font-semibold transition-all duration-300 ${
                 !isLogin
@@ -195,187 +249,216 @@ const AuthPage = () => {
 
           {/* Form Card */}
           <div className="bg-white rounded-2xl p-8 shadow-xl border border-green-100">
-            <h2 className="text-2xl font-bold text-eco-green-dark mb-2 text-center">
-              {isLogin ? t('auth.welcome') : t('auth.create')}
-            </h2>
-            <p className="text-center text-gray-600 text-sm mb-6">
-              {isLogin ? t('auth.login_desc') : t('auth.signup_desc')}
-            </p>
+            {isLogin ? (
+              // LOGIN FORM
+              <>
+                <h2 className="text-2xl font-bold text-eco-green-dark mb-2 text-center">
+                  {t('auth.welcome')}
+                </h2>
+                <p className="text-center text-gray-600 text-sm mb-6">
+                  Login with your mobile number and password
+                </p>
 
-            <form onSubmit={handleSubmit} className="space-y-4">
-              {/* Name Field (Sign Up Only) */}
-              {!isLogin && (
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    <User className="inline w-4 h-4 mr-2" />
-                    {t('auth.name')}
-                  </label>
-                  <input
-                    type="text"
-                    name="name"
-                    value={formData.name}
-                    onChange={handleChange}
-                    placeholder={t('auth.name')}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:border-eco-green focus:ring-2 focus:ring-eco-green/20 focus:outline-none transition"
-                    required={!isLogin}
-                  />
-                </div>
-              )}
+                <form onSubmit={handleLogin} className="space-y-4">
+                  {/* Mobile Number */}
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      <Phone className="inline w-4 h-4 mr-2" />
+                      Mobile Number
+                    </label>
+                    <input
+                      type="tel"
+                      name="mobileNo"
+                      value={formData.mobileNo}
+                      onChange={handleChange}
+                      placeholder="10-digit mobile number"
+                      pattern="[0-9]{10}"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:border-eco-green focus:ring-2 focus:ring-eco-green/20 focus:outline-none transition"
+                      required
+                    />
+                  </div>
 
-              {/* Email Field (Sign Up Only) */}
-              {!isLogin && (
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    <Mail className="inline w-4 h-4 mr-2" />
-                    {t('auth.email')}
-                  </label>
-                  <input
-                    type="email"
-                    name="email"
-                    value={formData.email}
-                    onChange={handleChange}
-                    placeholder={t('auth.email')}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:border-eco-green focus:ring-2 focus:ring-eco-green/20 focus:outline-none transition"
-                    required={!isLogin}
-                  />
-                </div>
-              )}
+                  {/* Password */}
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      <Lock className="inline w-4 h-4 mr-2" />
+                      Password
+                    </label>
+                    <div className="relative">
+                      <input
+                        type={showPassword ? "text" : "password"}
+                        name="password"
+                        value={formData.password}
+                        onChange={handleChange}
+                        placeholder="Enter your password"
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:border-eco-green focus:ring-2 focus:ring-eco-green/20 focus:outline-none transition"
+                        required
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-3 top-3 text-gray-500 hover:text-eco-green transition"
+                      >
+                        {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                      </button>
+                    </div>
+                  </div>
 
-              {/* Mobile Number */}
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  <Phone className="inline w-4 h-4 mr-2" />
-                  {t('auth.mobile')}
-                </label>
-                <input
-                  type="tel"
-                  name="mobileNo"
-                  value={formData.mobileNo}
-                  onChange={handleChange}
-                  placeholder="10-digit mobile number"
-                  pattern="[0-9]{10}"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:border-eco-green focus:ring-2 focus:ring-eco-green/20 focus:outline-none transition"
-                  required
-                />
-              </div>
-
-              {/* Agriculture Type (Sign Up Only) */}
-              {!isLogin && (
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    <Leaf className="inline w-4 h-4 mr-2" />
-                    {t('auth.agriculture')}
-                  </label>
-                  <select
-                    name="agricultureType"
-                    value={formData.agricultureType}
-                    onChange={handleChange}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:border-eco-green focus:ring-2 focus:ring-eco-green/20 focus:outline-none transition bg-white"
-                    required={!isLogin}
-                  >
-                    <option value="">{t('auth.agriculture')}</option>
-                    {agricultureTypes.map((type) => (
-                      <option key={type} value={type}>
-                        {type}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              )}
-
-              {/* Password */}
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  <Lock className="inline w-4 h-4 mr-2" />
-                  {t('auth.password')}
-                </label>
-                <div className="relative">
-                  <input
-                    type={showPassword ? "text" : "password"}
-                    name="password"
-                    value={formData.password}
-                    onChange={handleChange}
-                    placeholder={t('auth.password')}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:border-eco-green focus:ring-2 focus:ring-eco-green/20 focus:outline-none transition"
-                    required
-                  />
+                  {/* Submit Button */}
                   <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-3 text-gray-500 hover:text-eco-green transition"
+                    type="submit"
+                    disabled={loading}
+                    className="w-full py-3 px-4 bg-gradient-to-r from-eco-green to-teal-600 text-white font-bold rounded-lg hover:shadow-lg hover:brightness-105 transition-all mt-6 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                    {loading ? "Processing..." : "Login"}
                   </button>
-                </div>
-              </div>
+                </form>
+              </>
+            ) : (
+              // SIGNUP FORM
+              <>
+                {signupStep === "details" ? (
+                  // Step 1: Name & Password
+                  <>
+                    <h2 className="text-2xl font-bold text-eco-green-dark mb-2 text-center">
+                      Create Your Account
+                    </h2>
+                    <p className="text-center text-gray-600 text-sm mb-6">
+                      Step 1 of 2: Enter your name and password
+                    </p>
 
-              {/* Confirm Password (Sign Up Only) */}
-              {!isLogin && (
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    <Lock className="inline w-4 h-4 mr-2" />
-                    {t('auth.confirm')}
-                  </label>
-                  <input
-                    type={showPassword ? "text" : "password"}
-                    name="confirmPassword"
-                    value={formData.confirmPassword}
-                    onChange={handleChange}
-                    placeholder={t('auth.confirm')}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:border-eco-green focus:ring-2 focus:ring-eco-green/20 focus:outline-none transition"
-                    required={!isLogin}
-                  />
-                </div>
-              )}
+                    <form onSubmit={handleSignupStep1} className="space-y-4">
+                      {/* Name Field */}
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">
+                          <User className="inline w-4 h-4 mr-2" />
+                          Full Name
+                        </label>
+                        <input
+                          type="text"
+                          name="name"
+                          value={formData.name}
+                          onChange={handleChange}
+                          placeholder="Enter your full name"
+                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:border-eco-green focus:ring-2 focus:ring-eco-green/20 focus:outline-none transition"
+                          required
+                        />
+                        <p className="text-xs text-gray-500 mt-1">
+                          💡 This will be your username
+                        </p>
+                      </div>
 
-              {/* Submit Button */}
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full py-3 px-4 bg-gradient-to-r from-eco-green to-teal-600 text-white font-bold rounded-lg hover:shadow-lg hover:brightness-105 transition-all mt-6 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {loading ? "Processing..." : isLogin ? t('auth.loginBtn') : t('auth.signupBtn')}
-              </button>
-            </form>
+                      {/* Password */}
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">
+                          <Lock className="inline w-4 h-4 mr-2" />
+                          Password
+                        </label>
+                        <div className="relative">
+                          <input
+                            type={showPassword ? "text" : "password"}
+                            name="password"
+                            value={formData.password}
+                            onChange={handleChange}
+                            placeholder="At least 6 characters"
+                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:border-eco-green focus:ring-2 focus:ring-eco-green/20 focus:outline-none transition"
+                            required
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowPassword(!showPassword)}
+                            className="absolute right-3 top-3 text-gray-500 hover:text-eco-green transition"
+                          >
+                            {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                          </button>
+                        </div>
+                      </div>
 
-            {/* Divider */}
-            <div className="my-6 flex items-center gap-3">
-              <div className="flex-1 h-px bg-gray-200"></div>
-              <span className="text-gray-500 text-sm">or</span>
-              <div className="flex-1 h-px bg-gray-200"></div>
-            </div>
+                      {/* Submit Button */}
+                      <button
+                        type="submit"
+                        className="w-full py-3 px-4 bg-gradient-to-r from-eco-green to-teal-600 text-white font-bold rounded-lg hover:shadow-lg hover:brightness-105 transition-all mt-6"
+                      >
+                        Next Step →
+                      </button>
+                    </form>
+                  </>
+                ) : (
+                  // Step 2: Mobile Number
+                  <>
+                    <h2 className="text-2xl font-bold text-eco-green-dark mb-2 text-center">
+                      Add Mobile Number
+                    </h2>
+                    <p className="text-center text-gray-600 text-sm mb-6">
+                      Step 2 of 2: Enter your mobile number
+                    </p>
 
-            {/* Social Login */}
-            <div className="grid grid-cols-2 gap-3">
-              <button className="py-2 px-4 border border-gray-300 rounded-lg hover:bg-gray-50 transition text-sm font-medium">
-                📱 WhatsApp
-              </button>
-              <button className="py-2 px-4 border border-gray-300 rounded-lg hover:bg-gray-50 transition text-sm font-medium">
-                🔗 Google
-              </button>
-            </div>
+                    <form onSubmit={handleSignupStep2} className="space-y-4">
+                      {/* Mobile Number */}
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">
+                          <Phone className="inline w-4 h-4 mr-2" />
+                          Mobile Number
+                        </label>
+                        <input
+                          type="tel"
+                          name="mobileNo"
+                          value={formData.mobileNo}
+                          onChange={handleChange}
+                          placeholder="10-digit mobile number"
+                          pattern="[0-9]{10}"
+                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:border-eco-green focus:ring-2 focus:ring-eco-green/20 focus:outline-none transition"
+                          required
+                        />
+                        <p className="text-xs text-gray-500 mt-1">
+                          📱 This will be used for login
+                        </p>
+                      </div>
+
+                      {/* Submit Button */}
+                      <button
+                        type="submit"
+                        disabled={loading}
+                        className="w-full py-3 px-4 bg-gradient-to-r from-eco-green to-teal-600 text-white font-bold rounded-lg hover:shadow-lg hover:brightness-105 transition-all mt-6 disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        {loading ? "Creating Account..." : "Create Account"}
+                      </button>
+
+                      {/* Back Button */}
+                      <button
+                        type="button"
+                        onClick={() => setSignupStep("details")}
+                        className="w-full py-2 px-4 border border-gray-300 text-gray-700 font-semibold rounded-lg hover:bg-gray-50 transition"
+                      >
+                        ← Back
+                      </button>
+                    </form>
+                  </>
+                )}
+              </>
+            )}
           </div>
 
           {/* Features */}
           <div className="mt-8 grid grid-cols-3 gap-3">
             <div className="p-4 bg-white rounded-xl shadow-md border border-green-100 text-center hover:shadow-lg transition">
               <p className="text-3xl mb-2">🌾</p>
-              <p className="text-xs font-semibold text-gray-700">{t('auth.smartFarming')}</p>
+              <p className="text-xs font-semibold text-gray-700">Smart Farming</p>
             </div>
             <div className="p-4 bg-white rounded-xl shadow-md border border-green-100 text-center hover:shadow-lg transition">
               <p className="text-3xl mb-2">📱</p>
-              <p className="text-xs font-semibold text-gray-700">{t('auth.easyAccess')}</p>
+              <p className="text-xs font-semibold text-gray-700">Easy Access</p>
             </div>
             <div className="p-4 bg-white rounded-xl shadow-md border border-green-100 text-center hover:shadow-lg transition">
               <p className="text-3xl mb-2">🤖</p>
-              <p className="text-xs font-semibold text-gray-700">{t('auth.aiAssistant')}</p>
+              <p className="text-xs font-semibold text-gray-700">AI Assistant</p>
             </div>
           </div>
 
           {/* Info Box */}
           <div className="mt-6 p-4 bg-gradient-to-r from-green-50 to-teal-50 border-l-4 border-eco-green rounded-lg">
             <p className="text-sm text-gray-700">
-              <strong>{t('auth.tip')}</strong> {isLogin ? t('auth.tipLogin') : t('auth.tipSignup')}
+              <strong>💡 Tip:</strong> {isLogin ? "Use your mobile number to login" : "Your name will be your username"}
             </p>
           </div>
         </div>

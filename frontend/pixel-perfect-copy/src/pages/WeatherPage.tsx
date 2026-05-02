@@ -1,12 +1,13 @@
 import React from 'react';
-import Weather from '../components/Weather';
+import WeatherForecast from '../components/WeatherForecast';
 
 const WeatherPage: React.FC = () => {
   return (
     <div>
-      <Weather />
+      <WeatherForecast />
     </div>
   );
 };
 
 export default WeatherPage;
+

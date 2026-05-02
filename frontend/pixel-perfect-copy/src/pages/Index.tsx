@@ -6,6 +6,8 @@ import FAQ from "@/components/FAQ";
 import Footer from "@/components/Footer";
 import KisanSathiServicesSection from "@/components/KisanSathiServicesSection";
 import ShopPreview from "@/components/ShopPreview";
+import PetHealthAdvisorSection from "@/components/PetHealthAdvisorSection";
+import ResourcesPreviewSection from "@/components/ResourcesPreviewSection";
 
 const Index = () => {
   return (
@@ -13,6 +15,8 @@ const Index = () => {
       <Navbar />
       <Hero />
       <KisanSathiServicesSection />
+      <PetHealthAdvisorSection />
+      <ResourcesPreviewSection />
       <ShopPreview />
       <About />
       <HowWeWork />

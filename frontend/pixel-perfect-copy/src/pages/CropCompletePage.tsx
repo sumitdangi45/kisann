@@ -1,5 +1,5 @@
-import CropRecommendationAdvanced from '@/components/CropRecommendationAdvanced';
+import CropRecommendationComplete from '@/components/CropRecommendationComplete';
 
 export default function CropCompletePage() {
-  return <CropRecommendationAdvanced />;
+  return <CropRecommendationComplete />;
 }

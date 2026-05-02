@@ -1,9 +1,9 @@
-import UnifiedChatbot from "@/components/UnifiedChatbot";
+import ChatbotUI from "@/components/ChatbotUI";
 
 const AboutPage = () => {
   return (
     <div className="min-h-screen">
-      <UnifiedChatbot />
+      <ChatbotUI />
     </div>
   );
 };

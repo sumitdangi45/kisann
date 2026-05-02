@@ -1,351 +1,316 @@
-"""
-Fertilizer recommendation based on crop and soil parameters
-"""
+"""Fertilizer Recommendation for KisanSathi"""
 
-# Fertilizer database with crop-specific requirements
-FERTILIZER_DATABASE = {
-    'rice': {
-        'nitrogen': {'low': (0, 40), 'medium': (40, 80), 'high': (80, 150)},
-        'phosphorus': {'low': (0, 20), 'medium': (20, 40), 'high': (40, 100)},
-        'potassium': {'low': (0, 20), 'medium': (20, 40), 'high': (40, 100)},
-        'recommendations': {
-            'low_nitrogen': {
-                'fertilizer': 'Urea (46% N)',
-                'quantity': '50-60 kg/hectare',
-                'timing': 'Split into 2-3 doses',
-                'reason': 'Rice requires high nitrogen for vegetative growth',
-                'benefits': 'Increases leaf area, tillering, and grain yield'
-            },
-            'low_phosphorus': {
-                'fertilizer': 'Single Super Phosphate (16% P2O5)',
-                'quantity': '40-50 kg/hectare',
-                'timing': 'Apply at planting',
-                'reason': 'Phosphorus promotes root development and grain formation',
-                'benefits': 'Better root system, improved grain quality'
-            },
-            'low_potassium': {
-                'fertilizer': 'Muriate of Potash (60% K2O)',
-                'quantity': '30-40 kg/hectare',
-                'timing': 'Apply at panicle initiation',
-                'reason': 'Potassium improves disease resistance and grain quality',
-                'benefits': 'Stronger stems, disease resistance, better grain filling'
-            },
-            'balanced': {
-                'fertilizer': 'NPK 10:26:26 or 12:32:16',
-                'quantity': '200-250 kg/hectare',
-                'timing': 'Apply at planting and tillering',
-                'reason': 'Balanced nutrition for optimal growth',
-                'benefits': 'Complete nutrition for all growth stages'
+import pickle
+import os
+import pandas as pd
+import numpy as np
+
+def get_fertilizer_recommendation(nitrogen, phosphorus, potassium, temperature, humidity, moisture, soil_type, crop_type):
+    """Get fertilizer recommendation based on soil and crop parameters using ML model"""
+    
+    try:
+        # Load comprehensive model and encoders
+        model_path = os.path.join(os.path.dirname(__file__), '../models/fertilizer_model_xgboost_comprehensive.pkl')
+        encoders_path = os.path.join(os.path.dirname(__file__), '../models/fertilizer_encoders_comprehensive.pkl')
+        
+        if os.path.exists(model_path) and os.path.exists(encoders_path):
+            with open(model_path, 'rb') as f:
+                model = pickle.load(f)
+            
+            with open(encoders_path, 'rb') as f:
+                encoders_data = pickle.load(f)
+            
+            label_encoders = encoders_data['label_encoders']
+            target_encoder = encoders_data['target_encoder']
+            feature_names = encoders_data['feature_names']
+            
+            # Prepare feature dataframe
+            feature_dict = {
+                'Nitrogen_Level': nitrogen,
+                'Phosphorus_Level': phosphorus,
+                'Potassium_Level': potassium,
+                'Temperature': temperature,
+                'Humidity': humidity,
+                'Rainfall': moisture,  # Using moisture as rainfall proxy
+                'Soil_Type': soil_type,
+                'Soil_pH': 6.5,  # Default value if not provided
+                'Soil_Moisture': moisture
             }
-        }
-    },
-    'wheat': {
-        'nitrogen': {'low': (0, 50), 'medium': (50, 100), 'high': (100, 180)},
-        'phosphorus': {'low': (0, 25), 'medium': (25, 50), 'high': (50, 100)},
-        'potassium': {'low': (0, 25), 'medium': (25, 50), 'high': (50, 100)},
-        'recommendations': {
-            'low_nitrogen': {
-                'fertilizer': 'Urea (46% N)',
-                'quantity': '60-80 kg/hectare',
-                'timing': '3 splits: at sowing, tillering, and boot stage',
-                'reason': 'Wheat needs high nitrogen for grain development',
-                'benefits': 'Increases grain number and weight'
-            },
-            'low_phosphorus': {
-                'fertilizer': 'Diammonium Phosphate (18% N, 46% P2O5)',
-                'quantity': '50-60 kg/hectare',
-                'timing': 'Apply at sowing',
-                'reason': 'Phosphorus essential for root development',
-                'benefits': 'Strong root system, better nutrient uptake'
-            },
-            'low_potassium': {
-                'fertilizer': 'Muriate of Potash (60% K2O)',
-                'quantity': '30-40 kg/hectare',
-                'timing': 'Apply at tillering',
-                'reason': 'Potassium strengthens stems and improves grain quality',
-                'benefits': 'Reduced lodging, better grain quality'
-            },
-            'balanced': {
-                'fertilizer': 'NPK 10:26:26',
-                'quantity': '250-300 kg/hectare',
-                'timing': 'Apply at sowing and tillering',
-                'reason': 'Balanced nutrition for optimal yield',
-                'benefits': 'Complete nutrition throughout growing season'
+            
+            # Create dataframe with only required features
+            features_df = pd.DataFrame([feature_dict])
+            
+            # Encode categorical features
+            for col in label_encoders.keys():
+                if col in features_df.columns:
+                    try:
+                        features_df[col] = label_encoders[col].transform(features_df[col].astype(str))
+                    except:
+                        # If encoding fails, use first class as default
+                        features_df[col] = 0
+            
+            # Select only required features in correct order
+            X_features = features_df[feature_names]
+            
+            # Make prediction
+            pred_encoded = model.predict(X_features)[0]
+            pred_proba = model.predict_proba(X_features)[0]
+            pred_fertilizer = target_encoder.inverse_transform([pred_encoded])[0]
+            confidence = max(pred_proba) * 100
+            
+            return {
+                'recommended_fertilizer': pred_fertilizer,
+                'confidence': f'{confidence:.1f}%',
+                'source': 'ML Model (Comprehensive)',
+                'details': get_fertilizer_details(pred_fertilizer),
+                'application_rate': get_application_rate(crop_type, nitrogen, phosphorus, potassium),
+                'timing': get_application_timing(crop_type),
+                'precautions': get_fertilizer_precautions(pred_fertilizer)
             }
-        }
-    },
-    'maize': {
-        'nitrogen': {'low': (0, 60), 'medium': (60, 120), 'high': (120, 200)},
-        'phosphorus': {'low': (0, 30), 'medium': (30, 60), 'high': (60, 120)},
-        'potassium': {'low': (0, 30), 'medium': (30, 60), 'high': (60, 120)},
-        'recommendations': {
-            'low_nitrogen': {
-                'fertilizer': 'Urea (46% N)',
-                'quantity': '80-100 kg/hectare',
-                'timing': '2 splits: at planting and V6 stage',
-                'reason': 'Maize is nitrogen-hungry crop',
-                'benefits': 'Increases plant height, leaf area, and grain yield'
-            },
-            'low_phosphorus': {
-                'fertilizer': 'Single Super Phosphate (16% P2O5)',
-                'quantity': '60-80 kg/hectare',
-                'timing': 'Apply at planting',
-                'reason': 'Phosphorus critical for early root development',
-                'benefits': 'Better root system, improved nutrient uptake'
-            },
-            'low_potassium': {
-                'fertilizer': 'Muriate of Potash (60% K2O)',
-                'quantity': '40-50 kg/hectare',
-                'timing': 'Apply at V6-V8 stage',
-                'reason': 'Potassium improves photosynthesis and grain filling',
-                'benefits': 'Better grain filling, improved yield quality'
-            },
-            'balanced': {
-                'fertilizer': 'NPK 12:32:16',
-                'quantity': '300-350 kg/hectare',
-                'timing': 'Apply at planting and V6 stage',
-                'reason': 'Balanced nutrition for high-yielding maize',
-                'benefits': 'Complete nutrition for maximum yield'
-            }
-        }
-    },
-    'cotton': {
-        'nitrogen': {'low': (0, 50), 'medium': (50, 100), 'high': (100, 180)},
-        'phosphorus': {'low': (0, 20), 'medium': (20, 40), 'high': (40, 80)},
-        'potassium': {'low': (0, 30), 'medium': (30, 60), 'high': (60, 120)},
-        'recommendations': {
-            'low_nitrogen': {
-                'fertilizer': 'Urea (46% N)',
-                'quantity': '70-90 kg/hectare',
-                'timing': '3 splits: at planting, flowering, and boll formation',
-                'reason': 'Cotton needs sustained nitrogen supply',
-                'benefits': 'Increased plant vigor, more bolls'
-            },
-            'low_phosphorus': {
-                'fertilizer': 'Single Super Phosphate (16% P2O5)',
-                'quantity': '40-50 kg/hectare',
-                'timing': 'Apply at planting',
-                'reason': 'Phosphorus promotes flowering and boll development',
-                'benefits': 'More flowers, better boll set'
-            },
-            'low_potassium': {
-                'fertilizer': 'Muriate of Potash (60% K2O)',
-                'quantity': '50-60 kg/hectare',
-                'timing': 'Apply at flowering stage',
-                'reason': 'Potassium improves fiber quality and disease resistance',
-                'benefits': 'Better fiber quality, disease resistance'
-            },
-            'balanced': {
-                'fertilizer': 'NPK 10:26:26',
-                'quantity': '250-300 kg/hectare',
-                'timing': 'Apply at planting and flowering',
-                'reason': 'Balanced nutrition for cotton growth',
-                'benefits': 'Complete nutrition for optimal yield'
-            }
-        }
-    },
-    'potato': {
-        'nitrogen': {'low': (0, 80), 'medium': (80, 150), 'high': (150, 250)},
-        'phosphorus': {'low': (0, 40), 'medium': (40, 80), 'high': (80, 150)},
-        'potassium': {'low': (0, 80), 'medium': (80, 150), 'high': (150, 250)},
-        'recommendations': {
-            'low_nitrogen': {
-                'fertilizer': 'Urea (46% N)',
-                'quantity': '100-120 kg/hectare',
-                'timing': '2 splits: at planting and earthing up',
-                'reason': 'Potato needs high nitrogen for tuber development',
-                'benefits': 'Larger tubers, higher yield'
-            },
-            'low_phosphorus': {
-                'fertilizer': 'Single Super Phosphate (16% P2O5)',
-                'quantity': '80-100 kg/hectare',
-                'timing': 'Apply at planting',
-                'reason': 'Phosphorus essential for tuber formation',
-                'benefits': 'Better tuber development, improved quality'
-            },
-            'low_potassium': {
-                'fertilizer': 'Muriate of Potash (60% K2O)',
-                'quantity': '100-120 kg/hectare',
-                'timing': 'Apply at earthing up',
-                'reason': 'Potassium critical for tuber quality and starch content',
-                'benefits': 'Better tuber quality, higher starch content'
-            },
-            'balanced': {
-                'fertilizer': 'NPK 10:26:26',
-                'quantity': '400-500 kg/hectare',
-                'timing': 'Apply at planting and earthing up',
-                'reason': 'Balanced nutrition for potato growth',
-                'benefits': 'Complete nutrition for maximum yield'
-            }
-        }
-    },
-    'coffee': {
-        'nitrogen': {'low': (0, 30), 'medium': (30, 60), 'high': (60, 120)},
-        'phosphorus': {'low': (0, 15), 'medium': (15, 30), 'high': (30, 60)},
-        'potassium': {'low': (0, 30), 'medium': (30, 60), 'high': (60, 120)},
-        'recommendations': {
-            'low_nitrogen': {
-                'fertilizer': 'Urea (46% N)',
-                'quantity': '40-50 kg/hectare',
-                'timing': '2 splits: pre-monsoon and post-monsoon',
-                'reason': 'Coffee needs moderate nitrogen for leaf growth',
-                'benefits': 'Healthy foliage, better flowering'
-            },
-            'low_phosphorus': {
-                'fertilizer': 'Single Super Phosphate (16% P2O5)',
-                'quantity': '30-40 kg/hectare',
-                'timing': 'Apply before monsoon',
-                'reason': 'Phosphorus promotes flowering and bean development',
-                'benefits': 'Better flowering, improved bean quality'
-            },
-            'low_potassium': {
-                'fertilizer': 'Muriate of Potash (60% K2O)',
-                'quantity': '40-50 kg/hectare',
-                'timing': 'Apply post-monsoon',
-                'reason': 'Potassium improves bean quality and disease resistance',
-                'benefits': 'Better bean quality, disease resistance'
-            },
-            'balanced': {
-                'fertilizer': 'NPK 10:26:26',
-                'quantity': '150-200 kg/hectare',
-                'timing': 'Apply in 2 splits',
-                'reason': 'Balanced nutrition for coffee growth',
-                'benefits': 'Complete nutrition for optimal yield'
-            }
-        }
+        else:
+            print(f"Model files not found. Using fallback recommendation.")
+            return get_default_fertilizer_recommendation(nitrogen, phosphorus, potassium, crop_type)
+    
+    except Exception as e:
+        print(f"Error loading model: {e}")
+        return get_default_fertilizer_recommendation(nitrogen, phosphorus, potassium, crop_type)
+
+def get_default_fertilizer_recommendation(n, p, k, crop_type):
+    """Get default fertilizer recommendation based on NPK levels"""
+    
+    recommendation = {
+        'recommended_fertilizer': determine_fertilizer_type(n, p, k),
+        'confidence': 'Medium',
+        'source': 'Rule-based',
+        'details': {},
+        'application_rate': get_application_rate(crop_type, n, p, k),
+        'timing': get_application_timing(crop_type),
+        'precautions': []
     }
-}
-
-def get_nutrient_level(value, crop, nutrient):
-    """
-    Determine if nutrient level is low, medium, or high
-    """
-    if crop not in FERTILIZER_DATABASE:
-        return 'medium'
     
-    ranges = FERTILIZER_DATABASE[crop][nutrient]
-    if value <= ranges['low'][1]:
-        return 'low'
-    elif value <= ranges['medium'][1]:
-        return 'medium'
+    return recommendation
+
+def determine_fertilizer_type(n, p, k):
+    """Determine fertilizer type based on NPK levels"""
+    
+    if n < 20 and p < 10 and k < 100:
+        return "NPK 10:10:10 (Balanced)"
+    elif n < 20:
+        return "Urea (Nitrogen-rich)"
+    elif p < 10:
+        return "Superphosphate (Phosphorus-rich)"
+    elif k < 100:
+        return "Potassium Chloride (Potassium-rich)"
     else:
-        return 'high'
+        return "Organic Fertilizer (Compost/Manure)"
 
-def recommend_fertilizer(crop, nitrogen, phosphorus, potassium):
-    """
-    Recommend fertilizer based on crop and soil parameters
-    """
-    crop_lower = crop.lower()
+def get_fertilizer_details(fertilizer_type):
+    """Get details about specific fertilizer"""
     
-    if crop_lower not in FERTILIZER_DATABASE:
-        return {
-            'success': False,
-            'error': f'Fertilizer data not available for {crop}',
-            'available_crops': list(FERTILIZER_DATABASE.keys())
-        }
-    
-    # Get nutrient levels
-    n_level = get_nutrient_level(nitrogen, crop_lower, 'nitrogen')
-    p_level = get_nutrient_level(phosphorus, crop_lower, 'phosphorus')
-    k_level = get_nutrient_level(potassium, crop_lower, 'potassium')
-    
-    recommendations = FERTILIZER_DATABASE[crop_lower]['recommendations']
-    
-    # Determine primary deficiency
-    deficiencies = []
-    if n_level == 'low':
-        deficiencies.append('low_nitrogen')
-    if p_level == 'low':
-        deficiencies.append('low_phosphorus')
-    if k_level == 'low':
-        deficiencies.append('low_potassium')
-    
-    # If no deficiency, recommend balanced fertilizer
-    if not deficiencies:
-        primary_recommendation = recommendations.get('balanced', {})
-        deficiency_type = 'balanced'
-    else:
-        # Use first deficiency as primary
-        deficiency_type = deficiencies[0]
-        primary_recommendation = recommendations.get(deficiency_type, {})
-    
-    # Get secondary recommendations for other deficiencies
-    secondary_recommendations = []
-    for deficiency in deficiencies[1:]:
-        if deficiency in recommendations:
-            secondary_recommendations.append({
-                'type': deficiency,
-                'details': recommendations[deficiency]
-            })
-    
-    return {
-        'success': True,
-        'crop': crop,
-        'soil_status': {
-            'nitrogen': {'value': nitrogen, 'level': n_level},
-            'phosphorus': {'value': phosphorus, 'level': p_level},
-            'potassium': {'value': potassium, 'level': k_level}
-        },
-        'primary_deficiency': deficiency_type,
-        'primary_recommendation': primary_recommendation,
-        'secondary_recommendations': secondary_recommendations,
-        'all_deficiencies': deficiencies,
-        'summary': f"Your {crop} soil has {n_level} nitrogen, {p_level} phosphorus, and {k_level} potassium. Primary recommendation: {primary_recommendation.get('fertilizer', 'N/A')}"
-    }
-
-def get_fertilizer_info(fertilizer_name):
-    """
-    Get detailed information about a specific fertilizer
-    """
-    fertilizer_info = {
-        'Urea (46% N)': {
-            'type': 'Nitrogen fertilizer',
-            'composition': '46% Nitrogen',
-            'solubility': 'Highly soluble',
-            'application': 'Can be applied as granules or solution',
-            'cost': 'Low to medium',
-            'storage': 'Keep in dry place'
-        },
-        'Single Super Phosphate (16% P2O5)': {
-            'type': 'Phosphorus fertilizer',
-            'composition': '16% P2O5, 11% Sulfur',
-            'solubility': 'Slightly soluble',
-            'application': 'Apply as granules at planting',
+    details_map = {
+        "Compost": {
+            'nitrogen': 2,
+            'phosphorus': 1,
+            'potassium': 1,
+            'description': 'Organic compost for soil enrichment and slow nutrient release',
             'cost': 'Low',
-            'storage': 'Keep dry'
+            'benefits': ['Improves soil structure', 'Increases water retention', 'Sustainable']
         },
-        'Diammonium Phosphate (18% N, 46% P2O5)': {
-            'type': 'Nitrogen + Phosphorus fertilizer',
-            'composition': '18% N, 46% P2O5',
-            'solubility': 'Soluble',
-            'application': 'Apply at planting',
+        "DAP": {
+            'nitrogen': 18,
+            'phosphorus': 46,
+            'potassium': 0,
+            'description': 'Di-Ammonium Phosphate - high phosphorus for root development',
             'cost': 'Medium',
-            'storage': 'Keep dry'
+            'benefits': ['Promotes root growth', 'Enhances flowering', 'Good for early growth']
         },
-        'Muriate of Potash (60% K2O)': {
-            'type': 'Potassium fertilizer',
-            'composition': '60% K2O',
-            'solubility': 'Highly soluble',
-            'application': 'Apply as granules or solution',
+        "MOP": {
+            'nitrogen': 0,
+            'phosphorus': 0,
+            'potassium': 60,
+            'description': 'Muriate of Potash - high potassium for fruit and disease resistance',
             'cost': 'Medium',
-            'storage': 'Keep dry'
+            'benefits': ['Improves fruit quality', 'Increases disease resistance', 'Enhances shelf life']
         },
-        'NPK 10:26:26': {
-            'type': 'Balanced NPK fertilizer',
-            'composition': '10% N, 26% P2O5, 26% K2O',
-            'solubility': 'Soluble',
-            'application': 'Apply at planting and during growth',
-            'cost': 'Medium to high',
-            'storage': 'Keep dry'
+        "NPK": {
+            'nitrogen': 10,
+            'phosphorus': 10,
+            'potassium': 10,
+            'description': 'Balanced NPK fertilizer for general crop growth',
+            'cost': 'Low to Medium',
+            'benefits': ['Balanced nutrition', 'Suitable for most crops', 'Cost-effective']
         },
-        'NPK 12:32:16': {
-            'type': 'Balanced NPK fertilizer',
-            'composition': '12% N, 32% P2O5, 16% K2O',
-            'solubility': 'Soluble',
-            'application': 'Apply at planting and during growth',
-            'cost': 'Medium to high',
-            'storage': 'Keep dry'
+        "SSP": {
+            'nitrogen': 0,
+            'phosphorus': 16,
+            'potassium': 0,
+            'description': 'Single Super Phosphate - phosphorus-rich for root development',
+            'cost': 'Low',
+            'benefits': ['Affordable', 'Good phosphorus source', 'Improves root system']
+        },
+        "Urea": {
+            'nitrogen': 46,
+            'phosphorus': 0,
+            'potassium': 0,
+            'description': 'High nitrogen fertilizer for leafy growth and vegetative development',
+            'cost': 'Low',
+            'benefits': ['High nitrogen content', 'Quick action', 'Affordable']
+        },
+        "Zinc Sulphate": {
+            'nitrogen': 0,
+            'phosphorus': 0,
+            'potassium': 0,
+            'description': 'Micronutrient fertilizer for zinc deficiency correction',
+            'cost': 'Medium',
+            'benefits': ['Corrects zinc deficiency', 'Improves crop quality', 'Prevents stunted growth']
         }
     }
     
-    return fertilizer_info.get(fertilizer_name, {})
+    return details_map.get(fertilizer_type, {
+        'nitrogen': 0,
+        'phosphorus': 0,
+        'potassium': 0,
+        'description': f'{fertilizer_type} - ML predicted fertilizer',
+        'cost': 'Unknown',
+        'benefits': ['ML-based recommendation']
+    })
+
+def get_application_rate(crop_type, n, p, k):
+    """Get fertilizer application rate based on crop type"""
+    
+    rates = {
+        'rice': {
+            'nitrogen': 120,
+            'phosphorus': 60,
+            'potassium': 40,
+            'unit': 'kg/hectare'
+        },
+        'wheat': {
+            'nitrogen': 100,
+            'phosphorus': 50,
+            'potassium': 30,
+            'unit': 'kg/hectare'
+        },
+        'maize': {
+            'nitrogen': 150,
+            'phosphorus': 75,
+            'potassium': 50,
+            'unit': 'kg/hectare'
+        },
+        'cotton': {
+            'nitrogen': 100,
+            'phosphorus': 50,
+            'potassium': 50,
+            'unit': 'kg/hectare'
+        },
+        'sugarcane': {
+            'nitrogen': 150,
+            'phosphorus': 75,
+            'potassium': 75,
+            'unit': 'kg/hectare'
+        },
+        'vegetables': {
+            'nitrogen': 80,
+            'phosphorus': 60,
+            'potassium': 60,
+            'unit': 'kg/hectare'
+        }
+    }
+    
+    return rates.get(crop_type.lower(), {
+        'nitrogen': 100,
+        'phosphorus': 50,
+        'potassium': 40,
+        'unit': 'kg/hectare'
+    })
+
+def get_application_timing(crop_type):
+    """Get fertilizer application timing for crop type"""
+    
+    timing = {
+        'rice': [
+            'Basal: 50% at planting',
+            'Top dressing: 25% at tillering',
+            'Top dressing: 25% at panicle initiation'
+        ],
+        'wheat': [
+            'Basal: 50% at sowing',
+            'Top dressing: 50% at tillering'
+        ],
+        'maize': [
+            'Basal: 50% at planting',
+            'Top dressing: 50% at 6-8 leaf stage'
+        ],
+        'cotton': [
+            'Basal: 50% at planting',
+            'Top dressing: 25% at flowering',
+            'Top dressing: 25% at boll formation'
+        ],
+        'sugarcane': [
+            'Basal: 100% at planting'
+        ],
+        'vegetables': [
+            'Basal: 50% at planting',
+            'Top dressing: 50% at 30-40 days'
+        ]
+    }
+    
+    return timing.get(crop_type.lower(), [
+        'Basal: 50% at planting',
+        'Top dressing: 50% at growth stage'
+    ])
+
+def get_fertilizer_precautions(fertilizer_type):
+    """Get precautions for specific fertilizer"""
+    
+    precautions = {
+        "Urea": [
+            "Apply in split doses to avoid leaching",
+            "Water immediately after application",
+            "Avoid application during heavy rain",
+            "Store in dry place away from moisture"
+        ],
+        "DAP": [
+            "Mix well with soil before application",
+            "Apply 2-3 weeks before planting",
+            "Avoid contact with skin and eyes",
+            "Store in cool, dry place"
+        ],
+        "MOP": [
+            "Apply in split doses",
+            "Ensure adequate moisture in soil",
+            "Avoid excessive application",
+            "Do not mix with acidic fertilizers"
+        ],
+        "SSP": [
+            "Mix well with soil before application",
+            "Apply 2-3 weeks before planting",
+            "Avoid contact with skin",
+            "Store in dry conditions"
+        ],
+        "NPK": [
+            "Follow recommended application rates",
+            "Ensure proper soil moisture",
+            "Avoid over-application",
+            "Apply during appropriate growth stage"
+        ],
+        "Compost": [
+            "Ensure compost is well-decomposed",
+            "Apply 2-3 weeks before planting",
+            "Mix thoroughly with soil",
+            "Use aged compost for best results"
+        ],
+        "Zinc Sulphate": [
+            "Apply as foliar spray or soil application",
+            "Use recommended doses only",
+            "Avoid contact with eyes",
+            "Store away from moisture"
+        ]
+    }
+    
+    return precautions.get(fertilizer_type, [
+        "Follow recommended application rates",
+        "Ensure proper soil moisture",
+        "Avoid over-application",
+        "Consult local agricultural expert if unsure"
+    ])

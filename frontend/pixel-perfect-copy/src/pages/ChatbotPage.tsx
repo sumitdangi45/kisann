@@ -1,8 +1,8 @@
 import React from 'react';
-import UnifiedChatbot from '../components/UnifiedChatbot';
+import AboutPage from './AboutPage';
 
 const ChatbotPage: React.FC = () => {
-  return <UnifiedChatbot />;
+  return <AboutPage />;
 };
 
 export default ChatbotPage;

@@ -5,7 +5,11 @@ function FertilizerRecommendation() {
     crop: '',
     nitrogen: '',
     phosphorus: '',
-    potassium: ''
+    potassium: '',
+    temperature: '',
+    humidity: '',
+    moisture: '',
+    soil_type: ''
   });
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -24,26 +28,30 @@ function FertilizerRecommendation() {
     e.preventDefault();
     
     if (!formData.crop || !formData.nitrogen || !formData.phosphorus || !formData.potassium) {
-      alert('Please fill all fields');
+      alert('Please fill all required fields');
       return;
     }
 
     setLoading(true);
     try {
-      const response = await fetch('http://localhost:5000/api/fertilizer-recommend', {
+      const response = await fetch('http://localhost:5000/api/fertilizer/recommend', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          crop: formData.crop,
+          crop_type: formData.crop,
           nitrogen: parseFloat(formData.nitrogen),
           phosphorus: parseFloat(formData.phosphorus),
-          potassium: parseFloat(formData.potassium)
+          potassium: parseFloat(formData.potassium),
+          temperature: parseFloat(formData.temperature) || 25,
+          humidity: parseFloat(formData.humidity) || 70,
+          moisture: parseFloat(formData.moisture) || 50,
+          soil_type: formData.soil_type || 'loamy'
         })
       });
       const data = await response.json();
       setResult(data);
       
-      if (data.success) {
+      if (data.recommendation) {
         speakResult(data);
       }
     } catch (error) {
@@ -54,7 +62,8 @@ function FertilizerRecommendation() {
   };
 
   const speakResult = (data) => {
-    const text = `For ${data.crop}, your soil has ${data.soil_status.nitrogen.level} nitrogen, ${data.soil_status.phosphorus.level} phosphorus, and ${data.soil_status.potassium.level} potassium. Recommended fertilizer is ${data.primary_recommendation.fertilizer}. Apply ${data.primary_recommendation.quantity} at ${data.primary_recommendation.timing}.`;
+    const rec = data.recommendation;
+    const text = `For ${formData.crop}, recommended fertilizer is ${rec.recommended_fertilizer}. Apply ${rec.application_rate.nitrogen} kg nitrogen, ${rec.application_rate.phosphorus} kg phosphorus, and ${rec.application_rate.potassium} kg potassium per hectare. ${rec.timing[0]}`;
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.rate = 0.9;
     utterance.pitch = 1;
@@ -117,7 +126,17 @@ function FertilizerRecommendation() {
       setResult({ success: true, results: results });
       
       if (results.length > 0 && results[0].data.success) {
-        speakResult(results[0].data.fertilizer_recommendation);
+        // Speak the summary
+        const summary = results[0].data.summary;
+        if (summary) {
+          const utterance = new SpeechSynthesisUtterance(summary);
+          utterance.rate = 0.9;
+          utterance.pitch = 1;
+          utterance.volume = 1;
+          setIsSpeaking(true);
+          utterance.onend = () => setIsSpeaking(false);
+          window.speechSynthesis.speak(utterance);
+        }
       }
     } catch (error) {
       console.error('Error:', error);
@@ -126,7 +145,13 @@ function FertilizerRecommendation() {
     setLoading(false);
   };
 
-  const crops = ['rice', 'wheat', 'maize', 'cotton', 'potato', 'coffee'];
+  const crops = [
+    'rice', 'wheat', 'maize', 'cotton', 'potato', 'coffee',
+    'sugarcane', 'soybean', 'chickpea', 'lentil', 'groundnut',
+    'sunflower', 'mustard', 'tomato', 'onion', 'cabbage',
+    'carrot', 'brinjal', 'chilli', 'turmeric', 'ginger',
+    'banana', 'mango', 'coconut', 'tea'
+  ];
 
   return (
     <div className="min-h-screen bg-eco-cream py-20">
@@ -221,6 +246,58 @@ function FertilizerRecommendation() {
               </div>
             </div>
 
+            {/* Additional Parameters */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Temperature (°C)</label>
+                <input
+                  type="number"
+                  name="temperature"
+                  value={formData.temperature}
+                  onChange={handleChange}
+                  placeholder="e.g., 25"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-eco-green"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Humidity (%)</label>
+                <input
+                  type="number"
+                  name="humidity"
+                  value={formData.humidity}
+                  onChange={handleChange}
+                  placeholder="e.g., 70"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-eco-green"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Moisture (%)</label>
+                <input
+                  type="number"
+                  name="moisture"
+                  value={formData.moisture}
+                  onChange={handleChange}
+                  placeholder="e.g., 50"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-eco-green"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Soil Type</label>
+                <select
+                  name="soil_type"
+                  value={formData.soil_type}
+                  onChange={handleChange}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-eco-green"
+                >
+                  <option value="">Select...</option>
+                  <option value="loamy">Loamy</option>
+                  <option value="sandy">Sandy</option>
+                  <option value="clay">Clay</option>
+                  <option value="silty">Silty</option>
+                </select>
+              </div>
+            </div>
+
             {/* Submit Button */}
             <button
               type="submit"
@@ -299,143 +376,86 @@ function FertilizerRecommendation() {
         </div>
 
         {/* Results - Manual */}
-        {result && activeTab === 'manual' && result.success && (
+        {result && activeTab === 'manual' && result.recommendation && (
           <div className="mt-8 bg-white rounded-lg shadow-lg p-8">
-            {!result.success ? (
-              <div className="bg-red-50 border-2 border-red-300 rounded-lg p-6">
-                <p className="text-red-700 font-semibold">❌ Error</p>
-                <p className="text-red-600 mt-2">{result.error}</p>
-              </div>
-            ) : (
-              <div>
-                <h2 className="text-2xl font-bold text-eco-green-dark mb-6">
-                  Fertilizer Recommendation for {result.crop.toUpperCase()}
-                </h2>
+            <div>
+              <h2 className="text-2xl font-bold text-eco-green-dark mb-6">
+                Fertilizer Recommendation for {formData.crop.toUpperCase()}
+              </h2>
 
-                {/* Soil Status */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-                  <div className="bg-blue-50 p-4 rounded-lg border-2 border-blue-300">
-                    <p className="text-gray-600 text-sm">Nitrogen Level</p>
-                    <p className="text-2xl font-bold text-blue-600 mt-2">
-                      {result.soil_status.nitrogen.value} mg/kg
-                    </p>
-                    <p className="text-sm text-blue-700 mt-1 capitalize">
-                      Status: {result.soil_status.nitrogen.level}
-                    </p>
-                  </div>
-                  <div className="bg-green-50 p-4 rounded-lg border-2 border-green-300">
-                    <p className="text-gray-600 text-sm">Phosphorus Level</p>
-                    <p className="text-2xl font-bold text-green-600 mt-2">
-                      {result.soil_status.phosphorus.value} mg/kg
-                    </p>
-                    <p className="text-sm text-green-700 mt-1 capitalize">
-                      Status: {result.soil_status.phosphorus.level}
+              {/* Primary Recommendation */}
+              <div className="bg-eco-cream rounded-lg p-6 mb-6 border-2 border-eco-green">
+                <h3 className="text-xl font-bold text-eco-green-dark mb-4">
+                  🎯 Recommended Fertilizer
+                </h3>
+                <div className="space-y-3">
+                  <div>
+                    <p className="text-sm text-gray-600">Fertilizer</p>
+                    <p className="text-lg font-bold text-eco-green">
+                      {result.recommendation.recommended_fertilizer}
                     </p>
                   </div>
-                  <div className="bg-yellow-50 p-4 rounded-lg border-2 border-yellow-300">
-                    <p className="text-gray-600 text-sm">Potassium Level</p>
-                    <p className="text-2xl font-bold text-yellow-600 mt-2">
-                      {result.soil_status.potassium.value} mg/kg
-                    </p>
-                    <p className="text-sm text-yellow-700 mt-1 capitalize">
-                      Status: {result.soil_status.potassium.level}
+                  <div>
+                    <p className="text-sm text-gray-600">Confidence</p>
+                    <p className="text-lg font-semibold text-gray-800">
+                      {result.recommendation.confidence}
                     </p>
                   </div>
-                </div>
-
-                {/* Primary Recommendation */}
-                <div className="bg-eco-cream rounded-lg p-6 mb-6 border-2 border-eco-green">
-                  <h3 className="text-xl font-bold text-eco-green-dark mb-4">
-                    🎯 Primary Recommendation
-                  </h3>
-                  <div className="space-y-3">
-                    <div>
-                      <p className="text-sm text-gray-600">Fertilizer</p>
-                      <p className="text-lg font-bold text-eco-green">
-                        {result.primary_recommendation.fertilizer}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-600">Quantity</p>
-                      <p className="text-lg font-semibold text-gray-800">
-                        {result.primary_recommendation.quantity}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-600">Timing</p>
-                      <p className="text-lg font-semibold text-gray-800">
-                        {result.primary_recommendation.timing}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-600">Reason</p>
-                      <p className="text-gray-700 mt-1">
-                        {result.primary_recommendation.reason}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-600">Benefits</p>
-                      <p className="text-gray-700 mt-1">
-                        {result.primary_recommendation.benefits}
-                      </p>
-                    </div>
+                  <div>
+                    <p className="text-sm text-gray-600">Application Rate (per hectare)</p>
+                    <p className="text-gray-700">
+                      N: {result.recommendation.application_rate.nitrogen} kg<br/>
+                      P: {result.recommendation.application_rate.phosphorus} kg<br/>
+                      K: {result.recommendation.application_rate.potassium} kg
+                    </p>
                   </div>
-                </div>
-
-                {/* Secondary Recommendations */}
-                {result.secondary_recommendations && result.secondary_recommendations.length > 0 && (
-                  <div className="mb-6">
-                    <h3 className="text-lg font-bold text-eco-green-dark mb-4">
-                      📋 Additional Recommendations
-                    </h3>
-                    <div className="space-y-4">
-                      {result.secondary_recommendations.map((rec, idx) => (
-                        <div key={idx} className="bg-gray-50 p-4 rounded-lg border-l-4 border-eco-green">
-                          <p className="font-semibold text-gray-800 mb-2">
-                            {rec.details.fertilizer}
-                          </p>
-                          <p className="text-sm text-gray-600">
-                            <span className="font-semibold">Quantity:</span> {rec.details.quantity}
-                          </p>
-                          <p className="text-sm text-gray-600">
-                            <span className="font-semibold">Timing:</span> {rec.details.timing}
-                          </p>
-                          <p className="text-sm text-gray-600 mt-2">
-                            {rec.details.reason}
-                          </p>
-                        </div>
+                  <div>
+                    <p className="text-sm text-gray-600">Timing</p>
+                    <ul className="text-gray-700 mt-1">
+                      {result.recommendation.timing.map((t, i) => (
+                        <li key={i}>• {t}</li>
                       ))}
-                    </div>
+                    </ul>
                   </div>
-                )}
-
-                {/* Summary */}
-                <div className="bg-blue-50 p-4 rounded-lg border-2 border-blue-300 mb-6">
-                  <p className="text-blue-700">
-                    <span className="font-semibold">Summary:</span> {result.summary}
-                  </p>
-                </div>
-
-                {/* Voice Output */}
-                <div className="flex gap-3">
-                  <button
-                    onClick={() => speakResult(result)}
-                    disabled={isSpeaking}
-                    className="flex-1 bg-blue-500 text-white font-semibold py-2 rounded-lg hover:bg-blue-600 disabled:opacity-50"
-                  >
-                    {isSpeaking ? '🔊 Speaking...' : '🔊 Speak Recommendation'}
-                  </button>
-                  {isSpeaking && (
-                    <button
-                      onClick={stopSpeaking}
-                      className="flex-1 bg-red-500 text-white font-semibold py-2 rounded-lg hover:bg-red-600"
-                    >
-                      ⏹️ Stop
-                    </button>
+                  {result.recommendation.precautions && result.recommendation.precautions.length > 0 && (
+                    <div>
+                      <p className="text-sm text-gray-600">Precautions</p>
+                      <ul className="text-gray-700 mt-1">
+                        {result.recommendation.precautions.map((p, i) => (
+                          <li key={i}>• {p}</li>
+                        ))}
+                      </ul>
+                    </div>
                   )}
                 </div>
               </div>
-            )}
+
+              {/* Summary */}
+              <div className="bg-blue-50 p-4 rounded-lg border-2 border-blue-300 mb-6">
+                <p className="text-blue-700">
+                  <span className="font-semibold">Source:</span> {result.recommendation.source}
+                </p>
+              </div>
+
+              {/* Voice Output */}
+              <div className="flex gap-3">
+                <button
+                  onClick={() => speakResult(result)}
+                  disabled={isSpeaking}
+                  className="flex-1 bg-blue-500 text-white font-semibold py-2 rounded-lg hover:bg-blue-600 disabled:opacity-50"
+                >
+                  {isSpeaking ? '🔊 Speaking...' : '🔊 Speak Recommendation'}
+                </button>
+                {isSpeaking && (
+                  <button
+                    onClick={stopSpeaking}
+                    className="flex-1 bg-red-500 text-white font-semibold py-2 rounded-lg hover:bg-red-600"
+                  >
+                    ⏹️ Stop
+                  </button>
+                )}
+              </div>
+            </div>
           </div>
         )}
 
@@ -443,7 +463,7 @@ function FertilizerRecommendation() {
         {result && activeTab === 'image' && result.success && (
           <div className="mt-8 space-y-6">
             <h2 className="text-2xl font-bold text-eco-green-dark">
-              🖼️ Crop Analysis Results ({result.results.length} images)
+              🖼️ Crop Health Analysis Results ({result.results.length} images)
             </h2>
 
             {result.results.map((item, idx) => (
@@ -454,74 +474,139 @@ function FertilizerRecommendation() {
 
                 {item.data.success ? (
                   <>
-                    {/* Crop Identification */}
-                    <div className="bg-green-50 p-6 rounded-lg border-2 border-green-300 mb-6">
-                      <h4 className="text-lg font-bold text-green-700 mb-3">✅ Crop Identified</h4>
-                      <p className="text-3xl font-bold text-eco-green mb-2">
-                        {item.data.crop_identification.crop.toUpperCase()}
-                      </p>
-                      <p className="text-gray-700 mb-2">
-                        <span className="font-semibold">Confidence:</span> {(item.data.crop_identification.confidence * 100).toFixed(0)}%
-                      </p>
-                      <p className="text-gray-700">
-                        <span className="font-semibold">Analysis:</span> {item.data.crop_identification.reason}
-                      </p>
+                    {/* Health Status */}
+                    <div className="bg-blue-50 p-6 rounded-lg border-2 border-blue-300 mb-6">
+                      <h4 className="text-lg font-bold text-blue-700 mb-3">🏥 Crop Health Status</h4>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <p className="text-gray-600 text-sm">Health Status</p>
+                          <p className="text-3xl font-bold text-blue-600 mt-2">
+                            {item.data.health_analysis.status}
+                          </p>
+                          <p className="text-gray-700 text-sm mt-2">
+                            Confidence: {item.data.health_analysis.confidence}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-gray-600 text-sm">Assessment</p>
+                          <p className="text-gray-700 mt-2">
+                            {item.data.health_analysis.details.assessment}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-2 gap-4 mt-4">
+                        <div className="bg-green-100 p-3 rounded">
+                          <p className="text-green-700 text-sm font-semibold">Green Coverage</p>
+                          <p className="text-2xl font-bold text-green-600">
+                            {item.data.health_analysis.details.green_coverage}
+                          </p>
+                        </div>
+                        <div className="bg-yellow-100 p-3 rounded">
+                          <p className="text-yellow-700 text-sm font-semibold">Yellow Coverage</p>
+                          <p className="text-2xl font-bold text-yellow-600">
+                            {item.data.health_analysis.details.yellow_coverage}
+                          </p>
+                        </div>
+                      </div>
                     </div>
 
-                    {/* Default Nutrients */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                      <div className="bg-blue-50 p-4 rounded-lg border-2 border-blue-300">
-                        <p className="text-gray-600 text-sm">Nitrogen</p>
-                        <p className="text-2xl font-bold text-blue-600 mt-2">
-                          {item.data.default_nutrients.nitrogen} mg/kg
-                        </p>
-                      </div>
-                      <div className="bg-green-50 p-4 rounded-lg border-2 border-green-300">
-                        <p className="text-gray-600 text-sm">Phosphorus</p>
-                        <p className="text-2xl font-bold text-green-600 mt-2">
-                          {item.data.default_nutrients.phosphorus} mg/kg
-                        </p>
-                      </div>
-                      <div className="bg-yellow-50 p-4 rounded-lg border-2 border-yellow-300">
-                        <p className="text-gray-600 text-sm">Potassium</p>
-                        <p className="text-2xl font-bold text-yellow-600 mt-2">
-                          {item.data.default_nutrients.potassium} mg/kg
-                        </p>
+                    {/* Size/Growth Stage */}
+                    <div className="bg-purple-50 p-6 rounded-lg border-2 border-purple-300 mb-6">
+                      <h4 className="text-lg font-bold text-purple-700 mb-3">📏 Crop Size & Growth Stage</h4>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                          <p className="text-gray-600 text-sm">Size Category</p>
+                          <p className="text-2xl font-bold text-purple-600 mt-2">
+                            {item.data.size_analysis.category}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-gray-600 text-sm">Growth Stage</p>
+                          <p className="text-lg font-semibold text-purple-700 mt-2">
+                            {item.data.size_analysis.growth_stage}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-gray-600 text-sm">Estimated Age</p>
+                          <p className="text-lg font-semibold text-purple-700 mt-2">
+                            {item.data.size_analysis.estimated_age}
+                          </p>
+                        </div>
                       </div>
                     </div>
 
                     {/* Fertilizer Recommendation */}
                     <div className="bg-eco-cream rounded-lg p-6 mb-6 border-2 border-eco-green">
                       <h4 className="text-lg font-bold text-eco-green-dark mb-4">
-                        🎯 Recommended Fertilizer
+                        🎯 Recommended Fertilizer (Based on Health & Size)
                       </h4>
                       <div className="space-y-3">
                         <div>
-                          <p className="text-sm text-gray-600">Fertilizer</p>
+                          <p className="text-sm text-gray-600">Primary Recommendation</p>
                           <p className="text-lg font-bold text-eco-green">
-                            {item.data.fertilizer_recommendation.primary_recommendation.fertilizer}
+                            {item.data.fertilizer_recommendation.primary_recommendation}
                           </p>
                         </div>
                         <div>
                           <p className="text-sm text-gray-600">Quantity</p>
                           <p className="text-lg font-semibold text-gray-800">
-                            {item.data.fertilizer_recommendation.primary_recommendation.quantity}
+                            {item.data.fertilizer_recommendation.quantity}
                           </p>
                         </div>
                         <div>
                           <p className="text-sm text-gray-600">Timing</p>
                           <p className="text-lg font-semibold text-gray-800">
-                            {item.data.fertilizer_recommendation.primary_recommendation.timing}
+                            {item.data.fertilizer_recommendation.timing}
                           </p>
                         </div>
                         <div>
-                          <p className="text-sm text-gray-600">Benefits</p>
+                          <p className="text-sm text-gray-600">Reason</p>
                           <p className="text-gray-700 mt-1">
-                            {item.data.fertilizer_recommendation.primary_recommendation.benefits}
+                            {item.data.fertilizer_recommendation.reason}
                           </p>
                         </div>
                       </div>
                     </div>
+
+                    {/* Nutrient Focus */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                      <div className="bg-blue-50 p-4 rounded-lg border-2 border-blue-300">
+                        <p className="text-blue-700 font-semibold text-sm">Nitrogen Focus</p>
+                        <p className="text-2xl font-bold text-blue-600 mt-2">
+                          {item.data.fertilizer_recommendation.nutrient_focus.nitrogen}
+                        </p>
+                      </div>
+                      <div className="bg-green-50 p-4 rounded-lg border-2 border-green-300">
+                        <p className="text-green-700 font-semibold text-sm">Phosphorus Focus</p>
+                        <p className="text-2xl font-bold text-green-600 mt-2">
+                          {item.data.fertilizer_recommendation.nutrient_focus.phosphorus}
+                        </p>
+                      </div>
+                      <div className="bg-yellow-50 p-4 rounded-lg border-2 border-yellow-300">
+                        <p className="text-yellow-700 font-semibold text-sm">Potassium Focus</p>
+                        <p className="text-2xl font-bold text-yellow-600 mt-2">
+                          {item.data.fertilizer_recommendation.nutrient_focus.potassium}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Additional Measures */}
+                    <div className="bg-green-50 p-4 rounded-lg border-2 border-green-300 mb-6">
+                      <p className="text-green-700 font-semibold">📋 Additional Measures</p>
+                      <p className="text-green-600 mt-2">
+                        {item.data.fertilizer_recommendation.additional_measures}
+                      </p>
+                    </div>
+
+                    {/* Warning if any */}
+                    {item.data.fertilizer_recommendation.warning && (
+                      <div className="bg-red-50 p-4 rounded-lg border-2 border-red-300 mb-6">
+                        <p className="text-red-700 font-semibold">⚠️ Important Warning</p>
+                        <p className="text-red-600 mt-2">
+                          {item.data.fertilizer_recommendation.warning}
+                        </p>
+                      </div>
+                    )}
 
                     {/* Summary */}
                     <div className="bg-blue-50 p-4 rounded-lg border-2 border-blue-300">
@@ -529,15 +614,6 @@ function FertilizerRecommendation() {
                         <span className="font-semibold">Summary:</span> {item.data.summary}
                       </p>
                     </div>
-
-                    {/* Note if using fallback */}
-                    {item.data.note && (
-                      <div className="bg-yellow-50 p-4 rounded-lg border-2 border-yellow-300 mt-4">
-                        <p className="text-yellow-800 text-sm">
-                          ⚠️ <span className="font-semibold">Note:</span> {item.data.note}
-                        </p>
-                      </div>
-                    )}
                   </>
                 ) : (
                   <div className="bg-red-50 border-2 border-red-300 rounded-lg p-6">
@@ -553,11 +629,20 @@ function FertilizerRecommendation() {
               <div className="bg-white rounded-lg shadow-lg p-6">
                 <div className="flex gap-3">
                   <button
-                    onClick={() => speakResult(result.results[0].data.fertilizer_recommendation)}
+                    onClick={() => {
+                      const summary = result.results[0].data.summary;
+                      const utterance = new SpeechSynthesisUtterance(summary);
+                      utterance.rate = 0.9;
+                      utterance.pitch = 1;
+                      utterance.volume = 1;
+                      setIsSpeaking(true);
+                      utterance.onend = () => setIsSpeaking(false);
+                      window.speechSynthesis.speak(utterance);
+                    }}
                     disabled={isSpeaking}
                     className="flex-1 bg-blue-500 text-white font-semibold py-2 rounded-lg hover:bg-blue-600 disabled:opacity-50"
                   >
-                    {isSpeaking ? '🔊 Speaking...' : '🔊 Speak First Result'}
+                    {isSpeaking ? '🔊 Speaking...' : '🔊 Speak Analysis'}
                   </button>
                   {isSpeaking && (
                     <button

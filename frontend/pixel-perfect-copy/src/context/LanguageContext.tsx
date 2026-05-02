@@ -174,7 +174,6 @@ const translations: Record<Language, Record<string, string>> = {
     // Shop
     'shop.pageTitle': '🧪 Agricultural Medicines & Fertilizers',
     'shop.pageSubtitle': 'Quality pesticides, fertilizers, and bio-products for healthy crops',
-    'shop.buyAmazon': 'Amazon',
     'shop.buyFlipkart': 'Flipkart',
 
     // FAQ Page
@@ -445,7 +444,6 @@ const translations: Record<Language, Record<string, string>> = {
     // Shop
     'shop.pageTitle': '🧪 कृषि दवाएं और खाद',
     'shop.pageSubtitle': 'स्वस्थ फसलों के लिए गुणवत्ता कीटनाशक, खाद और जैव-उत्पाद',
-    'shop.buyAmazon': 'अमेज़न',
     'shop.buyFlipkart': 'फ्लिपकार्ट',
 
     // FAQ Page

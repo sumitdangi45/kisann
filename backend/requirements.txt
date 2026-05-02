@@ -14,3 +14,16 @@ pytesseract
 pdf2image
 pymongo
 dnspython
+redis
+flask-redis
+celery
+flower
+flask-socketio
+python-socketio
+python-engineio
+gunicorn
+eventlet
+gtts
+flask-jwt-extended
+flask-limiter
+flask-caching

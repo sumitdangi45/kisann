@@ -1,61 +1,104 @@
 import { useState } from "react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { Download, X, Eye } from "lucide-react";
+import { Search, BookOpen, Download, Sprout, X } from "lucide-react";
+import bookOrganic from "@/assets/book-organic.jpg";
+import bookCrop from "@/assets/book-crop.jpg";
+import bookWater from "@/assets/book-water.jpg";
+import bookSmart from "@/assets/book-smart.jpg";
+import bookPest from "@/assets/book-pest.jpg";
+import bookSeed from "@/assets/book-seed.jpg";
+import heroImage from "@/assets/farm-hero.jpg";
 
-const resources = [
+const categories = [
+  "सभी",
+  "जैविक खेती",
+  "फसल प्रबंधन",
+  "जल प्रबंधन",
+  "स्मार्ट खेती",
+  "कीट नियंत्रण",
+  "बीज विज्ञान",
+];
+
+const books = [
   {
-    title: "Jaivik Kheti (Organic Farming)",
-    category: "Soil & Fertilizer",
-    description: "Complete guide to organic farming practices and composting methods.",
-    pages: 48,
-    icon: "📖",
+    title: "Organic Farming Guide",
+    author: "Dr. Rajesh Kumar",
+    category: "जैविक खेती",
+    pages: 245,
+    cover: bookOrganic,
+    desc: "जैविक खेती की पूरी जानकारी — मिट्टी की तैयारी से लेकर फसल कटाई तक। रासायनिक उर्वरकों के बिना बेहतर उपज कैसे पाएं।",
     pdfFile: "Jaivik kheti.pdf",
-    paid: false,
-    background: "https://cdn.pixabay.com/photo/2016/09/21/04/46/barley-field-1684052_1280.jpg"
   },
   {
-    title: "Phal-Phool (Fruits & Flowers)",
-    category: "Crop Management",
-    description: "Guide to fruit and flower cultivation with seasonal planning.",
-    pages: 56,
-    icon: "📖",
+    title: "Crop Management",
+    author: "Prof. Sunita Sharma",
+    category: "फसल प्रबंधन",
+    pages: 310,
+    cover: bookCrop,
+    desc: "फसल प्रबंधन के आधुनिक तरीके — मिट्टी परीक्षण, उर्वरक प्रबंधन और उत्पादकता बढ़ाने के उपाय।",
     pdfFile: "Phal-Phool-Sept-Oct 2020.pdf",
-    paid: false,
-    background: "https://cdn.pixabay.com/photo/2016/09/21/04/46/barley-field-1684052_1280.jpg"
   },
   {
-    title: "Sabji (Vegetable Farming)",
-    category: "Crop Management",
-    description: "Complete resource for growing vegetables with seasonal planning.",
-    pages: 56,
-    icon: "📖",
+    title: "Water Management",
+    author: "Dr. Anil Verma",
+    category: "जल प्रबंधन",
+    pages: 198,
+    cover: bookWater,
+    desc: "सिंचाई और जल प्रबंधन की तकनीकें — ड्रिप इरिगेशन, स्प्रिंकलर सिस्टम और वर्षा जल संचयन।",
     pdfFile: "SABJIX16Xpage.pdf",
-    paid: false,
-    background: "https://cdn.pixabay.com/photo/2016/09/21/04/46/barley-field-1684052_1280.jpg"
   },
   {
-    title: "Unnat Krishi (Advanced Farming)",
-    category: "Weather & Water",
-    description: "Guide to advanced irrigation and water management techniques.",
-    pages: 46,
-    icon: "📖",
+    title: "Smart Agriculture",
+    author: "Dr. Priya Patel",
+    category: "स्मार्ट खेती",
+    pages: 275,
+    cover: bookSmart,
+    desc: "ड्रोन, IoT सेंसर और AI तकनीक से खेती में क्रांति। स्मार्ट फार्मिंग के नवीनतम उपकरण और तकनीकें।",
     pdfFile: "Unnat Krishi, January - March, 2022 issue_2_0.pdf",
-    paid: false,
-    background: "https://cdn.pixabay.com/photo/2016/09/21/04/46/barley-field-1684052_1280.jpg"
-  }
+  },
+  {
+    title: "Pest Control",
+    author: "Dr. Mohan Singh",
+    category: "कीट नियंत्रण",
+    pages: 220,
+    cover: bookPest,
+    desc: "कीट नियंत्रण के जैविक और रासायनिक तरीके। फसलों को कीटों और बीमारियों से बचाने के प्रभावी उपाय।",
+    pdfFile: "Jaivik kheti.pdf",
+  },
+  {
+    title: "Seed & Planting",
+    author: "Prof. Kavita Gupta",
+    category: "बीज विज्ञान",
+    pages: 185,
+    cover: bookSeed,
+    desc: "बीज चयन, बीज उपचार और रोपण तकनीकें। सही बीज से बेहतर फसल कैसे उगाएं।",
+    pdfFile: "Phal-Phool-Sept-Oct 2020.pdf",
+  },
 ];
 
 const ResourcesPage = () => {
-  const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
-  const selectedResource = selectedIndex !== null ? resources[selectedIndex] : null;
+  const [query, setQuery] = useState("");
+  const [activeCat, setActiveCat] = useState("सभी");
+  const [selectedBook, setSelectedBook] = useState<typeof books[0] | null>(null);
 
-  const downloadPDF = (resource: typeof resources[0]) => {
-    if (resource.pdfFile) {
+  const filtered = books.filter((b) => {
+    const matchCat = activeCat === "सभी" || b.category === activeCat;
+    const q = query.toLowerCase();
+    const matchQ =
+      !q ||
+      b.title.toLowerCase().includes(q) ||
+      b.author.toLowerCase().includes(q) ||
+      b.category.toLowerCase().includes(q);
+    return matchCat && matchQ;
+  });
+
+  const downloadPDF = (book: typeof books[0]) => {
+    if (book.pdfFile) {
       const link = document.createElement('a');
-      const encodedFileName = encodeURIComponent(resource.pdfFile);
+      const encodedFileName = encodeURIComponent(book.pdfFile);
       link.href = `/pdfs/${encodedFileName}`;
-      link.download = resource.pdfFile;
+      link.download = book.pdfFile;
       link.target = '_blank';
       document.body.appendChild(link);
       link.click();
@@ -64,100 +107,131 @@ const ResourcesPage = () => {
   };
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-background">
       <Navbar />
 
-      {/* Hero Banner */}
-      <section className="relative h-[400px] md:h-[480px] flex items-center">
+      {/* Hero */}
+      <header className="relative h-[420px] w-full overflow-hidden">
         <img
-          src="https://cdn.pixabay.com/photo/2016/09/21/04/46/barley-field-1684052_1280.jpg"
-          alt="Resources Hero"
-          className="absolute inset-0 w-full h-full object-cover"
+          src={heroImage}
+          alt="किसान पुस्तकालय - खेती की किताबें"
+          width={1920}
+          height={768}
+          className="absolute inset-0 h-full w-full object-cover"
         />
-        <div className="absolute inset-0 bg-black/40" />
-        <div className="relative z-10 max-w-7xl mx-auto px-6 lg:px-16 w-full">
-          <h1 className="font-heading text-5xl md:text-7xl font-bold text-primary-foreground mb-4">
-            📚 Learning Resources
-          </h1>
-          <p className="text-primary-foreground/80 text-lg md:text-xl max-w-lg">
-            Comprehensive guides and educational materials for modern farming
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-background/40" />
+        <div className="relative z-10 flex h-full flex-col items-center justify-center px-4 text-center">
+          <div className="flex items-center gap-3 drop-shadow-lg">
+            <Sprout className="h-10 w-10 text-primary-foreground" strokeWidth={2.5} />
+            <h1 className="text-4xl font-bold text-primary-foreground md:text-6xl">
+              किसान पुस्तकालय
+            </h1>
+          </div>
+          <p className="mt-4 max-w-2xl text-base font-medium text-primary-foreground/95 drop-shadow md:text-lg">
+            खेती-किसानी की बेहतरीन किताबें — पढ़ें और मुफ्त डाउनलोड करें
           </p>
         </div>
-      </section>
+      </header>
 
-      {/* Resources Grid */}
-      <section className="py-16 md:py-24 bg-white">
-        <div className="max-w-7xl mx-auto px-6 lg:px-16">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {resources.map((resource, index) => (
-              <div key={index} className="group">
-                {/* Background Image Card */}
-                <div 
-                  className="relative h-64 rounded-2xl overflow-hidden hover:shadow-xl transition-shadow"
-                  style={{
-                    backgroundImage: `url(${resource.background})`,
-                    backgroundSize: 'cover',
-                    backgroundPosition: 'center'
-                  }}
-                >
-                  <div className="absolute inset-0 bg-black/40 group-hover:bg-black/50 transition-all" />
-                  <div className="absolute inset-0 flex flex-col justify-between p-6">
-                    <div>
-                      <h3 className="font-heading text-2xl font-bold text-white mb-2">
-                        {resource.title}
-                      </h3>
-                      <p className="text-white/90 text-sm">{resource.category}</p>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-white text-sm">📄 {resource.pages} pages</span>
-                      <span className="bg-green-500 text-white text-xs px-3 py-1 rounded-full font-bold">
-                        🟢 Free
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Description and Buttons */}
-                <div className="mt-4">
-                  <p className="text-muted-foreground text-sm mb-4">
-                    {resource.description}
-                  </p>
-                  <div className="flex gap-3">
-                    <button 
-                      onClick={() => setSelectedIndex(index)}
-                      className="flex-1 inline-flex items-center justify-center gap-2 bg-gradient-to-r from-blue-600 to-teal-600 text-white px-4 py-2 rounded-lg font-semibold text-sm hover:brightness-110 transition-all"
-                    >
-                      <Eye className="w-4 h-4" />
-                      Read
-                    </button>
-                    <button 
-                      onClick={() => downloadPDF(resource)}
-                      className="flex-1 inline-flex items-center justify-center gap-2 bg-gray-200 text-gray-700 px-4 py-2 rounded-lg font-semibold text-sm hover:bg-gray-300 transition-all"
-                    >
-                      <Download className="w-4 h-4" />
-                      Download
-                    </button>
-                  </div>
-                </div>
-              </div>
-            ))}
+      <main className="container mx-auto px-4 py-10">
+        {/* Search */}
+        <div className="mx-auto max-w-2xl">
+          <div className="relative">
+            <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
+            <input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="किताब या श्रेणी खोजें..."
+              className="h-14 rounded-full border-2 pl-12 text-base shadow-sm w-full border-border focus:outline-none focus:ring-2 focus:ring-primary"
+            />
           </div>
         </div>
-      </section>
+
+        {/* Categories */}
+        <div className="mt-6 flex flex-wrap justify-center gap-2">
+          {categories.map((cat) => (
+            <button
+              key={cat}
+              onClick={() => setActiveCat(cat)}
+              className={`rounded-full border px-5 py-2 text-sm font-medium transition-all ${
+                activeCat === cat
+                  ? "border-primary bg-primary text-primary-foreground shadow-md"
+                  : "border-border bg-card text-foreground hover:border-primary/40 hover:bg-secondary"
+              }`}
+            >
+              {cat}
+            </button>
+          ))}
+        </div>
+
+        {/* Books grid */}
+        <section className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {filtered.map((book) => (
+            <div
+              key={book.title}
+              className="group flex flex-col overflow-hidden rounded-lg border border-border/60 bg-card shadow-sm transition-all hover:-translate-y-1 hover:shadow-lg"
+            >
+              <div className="relative aspect-[4/3] overflow-hidden">
+                <img
+                  src={book.cover}
+                  alt={book.title}
+                  loading="lazy"
+                  width={768}
+                  height={768}
+                  className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                />
+                <div className="absolute left-3 top-3 bg-primary text-primary-foreground px-3 py-1 rounded-full text-xs font-semibold">
+                  {book.category}
+                </div>
+              </div>
+              <div className="flex flex-1 flex-col p-5">
+                <h3 className="text-xl font-bold text-foreground">{book.title}</h3>
+                <p className="mt-1 text-sm text-primary">by {book.author}</p>
+                <p className="mt-3 flex-1 text-sm leading-relaxed text-muted-foreground">
+                  {book.desc}
+                </p>
+                <p className="mt-4 text-xs font-semibold text-muted-foreground">
+                  {book.pages} Pages
+                </p>
+                <div className="mt-4 grid grid-cols-2 gap-2">
+                  <button
+                    onClick={() => setSelectedBook(book)}
+                    className="inline-flex items-center justify-center gap-2 bg-primary text-primary-foreground px-4 py-2 rounded-lg font-semibold text-sm hover:bg-primary/90 transition-all"
+                  >
+                    <BookOpen className="h-4 w-4" /> Read
+                  </button>
+                  <button
+                    onClick={() => downloadPDF(book)}
+                    className="inline-flex items-center justify-center gap-2 border border-primary text-primary px-4 py-2 rounded-lg font-semibold text-sm hover:bg-primary hover:text-primary-foreground transition-all"
+                  >
+                    <Download className="h-4 w-4" /> Download
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </section>
+
+        {filtered.length === 0 && (
+          <p className="mt-12 text-center text-muted-foreground">
+            कोई किताब नहीं मिली।
+          </p>
+        )}
+      </main>
 
       {/* Modal - PDF Preview */}
-      {selectedResource && (
+      {selectedBook && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col">
             {/* Header */}
-            <div className="bg-gradient-to-r from-blue-600 to-teal-600 text-white p-6 flex justify-between items-start">
+            <div className="bg-gradient-to-r from-primary to-primary/80 text-primary-foreground p-6 flex justify-between items-start">
               <div>
-                <h2 className="text-2xl font-bold">{selectedResource.title}</h2>
-                <p className="text-white/80 text-sm mt-1">{selectedResource.category} • {selectedResource.pages} pages</p>
+                <h2 className="text-2xl font-bold">{selectedBook.title}</h2>
+                <p className="text-primary-foreground/80 text-sm mt-1">{selectedBook.category} • {selectedBook.pages} pages</p>
               </div>
               <button
-                onClick={() => setSelectedIndex(null)}
-                className="text-white hover:bg-white/20 p-2 rounded-lg transition"
+                onClick={() => setSelectedBook(null)}
+                className="text-primary-foreground hover:bg-white/20 p-2 rounded-lg transition"
               >
                 <X className="w-6 h-6" />
               </button>
@@ -166,12 +240,12 @@ const ResourcesPage = () => {
             {/* PDF Viewer */}
             <div className="flex-1 overflow-auto bg-gray-100 p-6">
               <div className="bg-white rounded-lg shadow-lg overflow-hidden">
-                {selectedResource.pdfFile ? (
+                {selectedBook.pdfFile ? (
                   <iframe
-                    src={`/pdfs/${encodeURIComponent(selectedResource.pdfFile)}`}
+                    src={`/pdfs/${encodeURIComponent(selectedBook.pdfFile)}`}
                     className="w-full h-full"
                     style={{ minHeight: '500px' }}
-                    title={selectedResource.title}
+                    title={selectedBook.title}
                   />
                 ) : (
                   <div className="p-6 text-center text-gray-500">
@@ -184,16 +258,16 @@ const ResourcesPage = () => {
             {/* Footer */}
             <div className="border-t p-4 flex gap-3 justify-end bg-gray-50">
               <button
-                onClick={() => setSelectedIndex(null)}
+                onClick={() => setSelectedBook(null)}
                 className="px-6 py-2 bg-gray-200 text-gray-700 rounded-lg font-semibold hover:bg-gray-300 transition"
               >
                 Close
               </button>
               <button 
-                onClick={() => downloadPDF(selectedResource)}
-                className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-teal-600 text-white px-6 py-2 rounded-lg font-semibold hover:brightness-110 transition-all"
+                onClick={() => downloadPDF(selectedBook)}
+                className="inline-flex items-center gap-2 bg-primary text-primary-foreground px-6 py-2 rounded-lg font-semibold hover:bg-primary/90 transition-all"
               >
-                <Download className="w-4 h-4" />
+                <Download className="h-4 w-4" />
                 Download PDF
               </button>
             </div>

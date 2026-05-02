@@ -1,183 +1,162 @@
-import PyPDF2
+"""
+PDF Soil Report Extractor
+Extracts soil parameters from PDF reports
+"""
+
 import re
-from typing import Dict, Optional
+import logging
 
-def extract_text_from_pdf(pdf_path: str) -> str:
-    """
-    Extract text from PDF file
-    """
-    try:
-        text = ""
-        with open(pdf_path, 'rb') as file:
-            pdf_reader = PyPDF2.PdfReader(file)
-            for page in pdf_reader.pages:
-                text += page.extract_text()
-        return text
-    except Exception as e:
-        print(f"Error extracting text from PDF: {e}")
-        return ""
+logger = logging.getLogger(__name__)
 
-
-def extract_soil_parameters(text: str) -> Dict[str, Optional[float]]:
+def extract_soil_values_from_pdf_text(text):
     """
     Extract soil parameters from PDF text using regex patterns
-    Looks for: Nitrogen (N), Phosphorus (P), Potassium (K), pH, etc.
     """
-    parameters = {
+    values = {
         'nitrogen': None,
         'phosphorus': None,
         'potassium': None,
         'ph': None,
-        'temperature': None,
-        'humidity': None,
         'rainfall': None,
-        'organic_matter': None,
-        'ec': None  # Electrical Conductivity
+        'temperature': None,
+        'humidity': None
     }
     
-    text_lower = text.lower()
+    try:
+        # Pattern matching for different parameter names
+        patterns = {
+            'nitrogen': [
+                r'nitrogen[:\s]+(\d+\.?\d*)',
+                r'N[:\s]+(\d+\.?\d*)',
+                r'N\s*\([^)]*\)[:\s]+(\d+\.?\d*)',
+                r'नाइट्रोजन[:\s]+(\d+\.?\d*)',
+            ],
+            'phosphorus': [
+                r'phosphorus[:\s]+(\d+\.?\d*)',
+                r'P[:\s]+(\d+\.?\d*)',
+                r'P\s*\([^)]*\)[:\s]+(\d+\.?\d*)',
+                r'फॉस्फोरस[:\s]+(\d+\.?\d*)',
+            ],
+            'potassium': [
+                r'potassium[:\s]+(\d+\.?\d*)',
+                r'K[:\s]+(\d+\.?\d*)',
+                r'K\s*\([^)]*\)[:\s]+(\d+\.?\d*)',
+                r'पोटेशियम[:\s]+(\d+\.?\d*)',
+            ],
+            'ph': [
+                r'pH[:\s]+(\d+\.?\d*)',
+                r'ph[:\s]+(\d+\.?\d*)',
+                r'पीएच[:\s]+(\d+\.?\d*)',
+            ],
+            'rainfall': [
+                r'rainfall[:\s]+(\d+\.?\d*)',
+                r'rain[:\s]+(\d+\.?\d*)',
+                r'वर्षा[:\s]+(\d+\.?\d*)',
+            ],
+            'temperature': [
+                r'temperature[:\s]+(\d+\.?\d*)',
+                r'temp[:\s]+(\d+\.?\d*)',
+                r'तापमान[:\s]+(\d+\.?\d*)',
+            ],
+            'humidity': [
+                r'humidity[:\s]+(\d+\.?\d*)',
+                r'आर्द्रता[:\s]+(\d+\.?\d*)',
+            ]
+        }
+        
+        # Convert text to lowercase for matching
+        text_lower = text.lower()
+        
+        for param, pattern_list in patterns.items():
+            for pattern in pattern_list:
+                match = re.search(pattern, text_lower, re.IGNORECASE)
+                if match:
+                    try:
+                        values[param] = float(match.group(1))
+                        logger.info(f"Extracted {param}: {values[param]}")
+                        break
+                    except (ValueError, IndexError):
+                        continue
+        
+        return values
     
-    # Nitrogen patterns
-    nitrogen_patterns = [
-        r'nitrogen\s*\(n\)[:\s]+(\d+\.?\d*)',
-        r'nitrogen[:\s]+(\d+\.?\d*)',
-        r'(?:total\s+)?nitrogen[:\s]+(\d+\.?\d*)',
-        r'n\s*\(mg/kg\)[:\s]+(\d+\.?\d*)',
-        r'(?:^|\s)n[:\s]+(\d+\.?\d*)',
-    ]
-    for pattern in nitrogen_patterns:
-        match = re.search(pattern, text_lower, re.MULTILINE)
-        if match:
-            parameters['nitrogen'] = float(match.group(1))
-            break
-    
-    # Phosphorus patterns
-    phosphorus_patterns = [
-        r'phosphorus[:\s]+(\d+\.?\d*)',
-        r'phosphorus\s*\(p\)[:\s]+(\d+\.?\d*)',
-        r'(?:available\s+)?phosphorus[:\s]+(\d+\.?\d*)',
-        r'p\s*\(mg/kg\)[:\s]+(\d+\.?\d*)',
-        r'(?:^|\s)p[:\s]+(\d+\.?\d*)',
-    ]
-    for pattern in phosphorus_patterns:
-        match = re.search(pattern, text_lower, re.MULTILINE)
-        if match:
-            parameters['phosphorus'] = float(match.group(1))
-            break
-    
-    # Potassium patterns
-    potassium_patterns = [
-        r'potassium[:\s]+(\d+\.?\d*)',
-        r'potassium\s*\(k\)[:\s]+(\d+\.?\d*)',
-        r'(?:available\s+)?potassium[:\s]+(\d+\.?\d*)',
-        r'k\s*\(mg/kg\)[:\s]+(\d+\.?\d*)',
-        r'(?:^|\s)k[:\s]+(\d+\.?\d*)',
-    ]
-    for pattern in potassium_patterns:
-        match = re.search(pattern, text_lower, re.MULTILINE)
-        if match:
-            parameters['potassium'] = float(match.group(1))
-            break
-    
-    # pH patterns
-    ph_patterns = [
-        r'ph[:\s]+(\d+\.?\d*)',
-        r'soil\s+ph[:\s]+(\d+\.?\d*)',
-        r'ph\s+value[:\s]+(\d+\.?\d*)',
-    ]
-    for pattern in ph_patterns:
-        match = re.search(pattern, text_lower)
-        if match:
-            parameters['ph'] = float(match.group(1))
-            break
-    
-    # Temperature patterns
-    temp_patterns = [
-        r'temperature[:\s]+(\d+\.?\d*)',
-        r'temp[:\s]+(\d+\.?\d*)',
-        r'temperature\s*\(°?c\)[:\s]+(\d+\.?\d*)',
-    ]
-    for pattern in temp_patterns:
-        match = re.search(pattern, text_lower)
-        if match:
-            parameters['temperature'] = float(match.group(1))
-            break
-    
-    # Humidity patterns
-    humidity_patterns = [
-        r'humidity[:\s]+(\d+\.?\d*)',
-        r'moisture[:\s]+(\d+\.?\d*)',
-        r'humidity\s*\(%\)[:\s]+(\d+\.?\d*)',
-    ]
-    for pattern in humidity_patterns:
-        match = re.search(pattern, text_lower)
-        if match:
-            parameters['humidity'] = float(match.group(1))
-            break
-    
-    # Rainfall patterns
-    rainfall_patterns = [
-        r'rainfall[:\s]+(\d+\.?\d*)',
-        r'rain[:\s]+(\d+\.?\d*)',
-        r'rainfall\s*\(mm\)[:\s]+(\d+\.?\d*)',
-    ]
-    for pattern in rainfall_patterns:
-        match = re.search(pattern, text_lower)
-        if match:
-            parameters['rainfall'] = float(match.group(1))
-            break
-    
-    # Organic Matter patterns
-    om_patterns = [
-        r'organic\s+matter[:\s]+(\d+\.?\d*)',
-        r'o\.m[:\s]+(\d+\.?\d*)',
-        r'organic\s+carbon[:\s]+(\d+\.?\d*)',
-    ]
-    for pattern in om_patterns:
-        match = re.search(pattern, text_lower)
-        if match:
-            parameters['organic_matter'] = float(match.group(1))
-            break
-    
-    # EC (Electrical Conductivity) patterns
-    ec_patterns = [
-        r'ec[:\s]+(\d+\.?\d*)',
-        r'electrical\s+conductivity[:\s]+(\d+\.?\d*)',
-        r'e\.c[:\s]+(\d+\.?\d*)',
-    ]
-    for pattern in ec_patterns:
-        match = re.search(pattern, text_lower)
-        if match:
-            parameters['ec'] = float(match.group(1))
-            break
-    
-    return parameters
+    except Exception as e:
+        logger.error(f"Error extracting soil values from PDF: {e}")
+        return values
 
 
-def validate_extracted_parameters(params: Dict[str, Optional[float]]) -> Dict[str, Optional[float]]:
+def extract_text_from_pdf(pdf_file):
     """
-    Validate extracted parameters and fill missing ones with defaults if needed
+    Extract text from PDF file
+    Supports both PyPDF2 and pdfplumber
     """
-    # Define reasonable ranges for each parameter
-    ranges = {
-        'nitrogen': (0, 500),
-        'phosphorus': (0, 500),
-        'potassium': (0, 500),
-        'ph': (3, 10),
-        'temperature': (-10, 50),
-        'humidity': (0, 100),
-        'rainfall': (0, 5000),
-    }
+    try:
+        # Try using pdfplumber first (better for text extraction)
+        try:
+            import pdfplumber
+            text = ""
+            with pdfplumber.open(pdf_file) as pdf:
+                for page in pdf.pages:
+                    text += page.extract_text() or ""
+            return text
+        except ImportError:
+            # Fallback to PyPDF2
+            try:
+                from PyPDF2 import PdfReader
+                text = ""
+                pdf_reader = PdfReader(pdf_file)
+                for page in pdf_reader.pages:
+                    text += page.extract_text()
+                return text
+            except ImportError:
+                logger.warning("No PDF library available. Install pdfplumber or PyPDF2")
+                return ""
     
-    validated = {}
-    for key, value in params.items():
-        if value is not None and key in ranges:
-            min_val, max_val = ranges[key]
-            if min_val <= value <= max_val:
-                validated[key] = value
-            else:
-                validated[key] = None
-        else:
-            validated[key] = value
+    except Exception as e:
+        logger.error(f"Error extracting text from PDF: {e}")
+        return ""
+
+
+def process_soil_report_pdf(pdf_file):
+    """
+    Main function to process soil report PDF
+    Returns extracted soil parameters
+    """
+    try:
+        # Extract text from PDF
+        text = extract_text_from_pdf(pdf_file)
+        
+        if not text:
+            return {
+                'success': False,
+                'error': 'Could not extract text from PDF',
+                'values': {}
+            }
+        
+        # Extract soil values from text
+        values = extract_soil_values_from_pdf_text(text)
+        
+        # Check if any values were extracted
+        extracted_count = sum(1 for v in values.values() if v is not None)
+        
+        if extracted_count == 0:
+            return {
+                'success': False,
+                'error': 'No soil parameters found in PDF',
+                'values': values
+            }
+        
+        return {
+            'success': True,
+            'message': f'Successfully extracted {extracted_count} parameters',
+            'values': values,
+            'extracted_text': text[:500]  # First 500 chars for debugging
+        }
     
-    return validated
+    except Exception as e:
+        logger.error(f"Error processing soil report PDF: {e}")
+        return {
+            'success': False,
+            'error': str(e),
+            'values': {}
+        }

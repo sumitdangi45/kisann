@@ -9,10 +9,11 @@ import google.generativeai as genai
 import openai
 import os
 import re
+from datetime import datetime
 
 def get_gemini_api_key():
     """Get Gemini API key"""
-    return os.getenv('GEMINI_API_KEY', '')
+    return os.getenv('GEMINI_API_KEY', 'AIzaSyCNjjPRTghArckrMinO_xjrGeJxb7GcQvM')
 
 def get_openai_api_key():
     """Get OpenAI API key"""
@@ -229,8 +230,6 @@ def process_with_gemini(message, conversation_history=None):
 
 def get_system_prompt():
     """Get the system prompt for the chatbot"""
-    from datetime import datetime
-    from utils.weather_integration import get_weather_for_farming, get_farming_recommendations_based_on_weather
     
     # Get current date and time info
     now = datetime.now()
@@ -240,12 +239,17 @@ def get_system_prompt():
     current_time = now.strftime("%H:%M")
     
     # Try to get weather for default location (Delhi)
-    weather_info = get_weather_for_farming("Delhi")
-    weather_recommendations = get_farming_recommendations_based_on_weather("Delhi")
-    
     weather_section = ""
-    if weather_info:
-        weather_section = f"\n\nCURRENT WEATHER INFORMATION:\n{weather_info}\n\nWEATHER-BASED FARMING TIPS:\n{weather_recommendations}"
+    try:
+        from utils.weather_integration import get_weather_for_farming, get_farming_recommendations_based_on_weather
+        weather_info = get_weather_for_farming("Delhi")
+        weather_recommendations = get_farming_recommendations_based_on_weather("Delhi")
+        
+        if weather_info:
+            weather_section = f"\n\nCURRENT WEATHER INFORMATION:\n{weather_info}\n\nWEATHER-BASED FARMING TIPS:\n{weather_recommendations}"
+    except Exception as e:
+        print(f"Warning: Could not load weather integration: {e}")
+        weather_section = ""
     
     return f"""You are KisanSathi, an AI farming assistant for Indian farmers. Your ONLY purpose is to help with farming and agriculture.
 
@@ -290,3 +294,19 @@ When farmer asks about:
 - Tracking: Help create schedule and reminders
 
 Always be helpful and supportive."""
+
+
+# Wrapper function for API compatibility
+def get_chatbot_response(message, context=None):
+    """
+    Wrapper function for API compatibility
+    Calls process_unified_chat and returns response
+    """
+    result = process_unified_chat(message, context)
+    
+    # If it's a dict with 'response' key, return just the response text
+    if isinstance(result, dict) and 'response' in result:
+        return result['response']
+    
+    # Otherwise return the result as is
+    return result

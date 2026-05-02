@@ -9,7 +9,7 @@ const KisanSathiServicesSection = () => {
       title: t('services.chatbot'),
       description: t('services.chatbot_desc'),
       icon: '🤖',
-      link: '/chatbot'
+      link: '/about'
     },
     {
       title: t('services.crop'),
@@ -42,6 +42,8 @@ const KisanSathiServicesSection = () => {
       link: '/reminders'
     }
   ];
+
+  // Note: Crop recommendation now includes all features (manual, voice, seasonal) in one component at /crop
 
   return (
     <section className="py-20 bg-eco-cream">

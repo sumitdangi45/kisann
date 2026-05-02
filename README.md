@@ -1,194 +1,192 @@
-# KisanSathi - Smart Farming Assistant
+# 🌾 KisanSathi - Agricultural Advisory System
 
-An AI-driven agricultural platform offering crop recommendations, fertilizer suggestions, and disease detection for optimal farming.
+A comprehensive agricultural advisory platform providing crop recommendations, fertilizer suggestions, disease detection, and weather forecasting for Indian farmers.
 
-## 📁 Project Structure
+## ✨ Features
 
-```
-kisansathi/
-├── frontend/                 # React + TypeScript + Tailwind CSS
-│   └── pixel-perfect-copy/   # Main React app
-│       ├── src/
-│       │   ├── components/   # React components (Crop, Fertilizer, Disease)
-│       │   ├── pages/        # Page components
-│       │   └── App.tsx       # Main app with routes
-│       └── package.json
-│
-├── backend/                  # Flask Python API
-│   ├── app.py               # Main Flask application
-│   ├── config.py            # Configuration
-│   ├── requirements.txt      # Python dependencies
-│   ├── utils/               # Utility modules (disease, fertilizer, model)
-│   ├── models/              # ML models (RandomForest, ResNet-99, etc.)
-│   ├── Data/                # Processed data (fertilizer.csv, crop data)
-│   ├── Data-raw/            # Raw datasets
-│   ├── static/              # CSS, images, JavaScript
-│   └── templates/           # HTML templates
-│
-├── docs/                     # Documentation
-│   ├── README.md
-│   ├── MODEL_TRAINING_SUMMARY.md
-│   ├── QUICK_START.md
-│   ├── SAMPLE_DATA.md
-│   ├── START_HERE.md
-│   ├── TEST_GUIDE.txt
-│   ├── TESTING_SUMMARY.md
-│   └── notebooks/           # Jupyter notebooks for model training
-│
-└── README.md               # This file
-```
+### 🌱 Crop Recommendation
+- **Manual Input**: Enter soil parameters for personalized recommendations
+- **By Location & Season**: Get recommendations based on your region and month
+- **Per Month**: Consistent month-based crop suggestions
+- **Voice Input**: Speak your soil parameters
+
+### 🧪 Fertilizer Recommendation
+- **Manual Input**: Get fertilizer suggestions based on soil nutrients
+- **Crop Image Analysis**: Upload crop images for health-based recommendations
+  - Detects crop health status (Healthy/Stressed/Diseased)
+  - Estimates crop size and growth stage
+  - Provides customized fertilizer recommendations
+
+### 🏥 Disease Detection
+- Plant disease identification from images
+- Pest management recommendations
+- Treatment suggestions
+
+### 🌤️ Weather Forecasting
+- Current weather information
+- 7-day forecast
+- Location-based weather alerts
+
+### 📚 Resources
+- Agricultural guides and books
+- PDF downloads
+- Best practices
+
+### 🤖 AI Chatbot
+- Unified chatbot for all queries
+- Hindi and English support
+- Voice interaction
 
 ## 🚀 Quick Start
 
 ### Prerequisites
-- Python 3.7+
-- Node.js 14+
-- npm or yarn
+- Python 3.8+
+- Node.js 16+
+- MongoDB
+- Git
 
-### Backend Setup
+### Installation
 
+1. **Clone the repository**
+```bash
+git clone https://github.com/yourusername/kisansathi.git
+cd kisansathi
+```
+
+2. **Backend Setup**
 ```bash
 cd backend
 pip install -r requirements.txt
-python app.py
+python app_enhanced.py
 ```
 
-Backend runs on: `http://localhost:5000`
-
-### Frontend Setup
-
+3. **Frontend Setup**
 ```bash
 cd frontend/pixel-perfect-copy
 npm install
 npm run dev
 ```
 
-Frontend runs on: `http://localhost:8080`
+4. **Access the application**
+- Frontend: http://localhost:8080
+- Backend API: http://localhost:5000
 
-## 🎯 Features
+## 📁 Project Structure
 
-### 1. Crop Recommendation
-- Analyzes soil nutrients (N, P, K), pH, rainfall, and weather
-- Recommends best crop for maximum yield
-- Uses Random Forest ML model
-
-### 2. Fertilizer Recommendation
-- Analyzes current soil nutrient levels
-- Identifies deficiencies or excess
-- Provides specific fertilizer recommendations
-
-### 3. Disease Detection
-- Identifies plant diseases from leaf images
-- Uses ResNet-99 deep learning model (99.2% accuracy)
-- Provides prevention and cure tips
-
-## 🛠️ Tech Stack
-
-**Frontend:**
-- React 18
-- TypeScript
-- Tailwind CSS
-- Vite
-- React Router
-
-**Backend:**
-- Flask
-- Python 3
-- Scikit-learn (ML models)
-- PyTorch (Deep learning)
-- Pandas & NumPy (Data processing)
-
-**APIs:**
-- OpenWeatherMap (Weather data)
-
-## 📊 API Endpoints
-
-### Crop Prediction
 ```
-POST /api/crop-predict
-{
-  "nitrogen": 40,
-  "phosphorous": 40,
-  "potassium": 40,
-  "ph": 6.5,
-  "rainfall": 200,
-  "city": "Delhi"
-}
+kisansathi/
+├── backend/
+│   ├── app_enhanced.py          # Main Flask application
+│   ├── requirements.txt          # Python dependencies
+│   ├── models/                   # ML models
+│   ├── utils/                    # Utility functions
+│   └── Data/                     # Data files
+├── frontend/
+│   └── pixel-perfect-copy/       # React application
+│       ├── src/
+│       ├── public/
+│       └── package.json
+├── docker-compose.yml            # Docker configuration
+└── README.md                      # This file
 ```
-
-### Fertilizer Prediction
-```
-POST /api/fertilizer-predict
-{
-  "cropname": "rice",
-  "nitrogen": 20,
-  "phosphorous": 40,
-  "potassium": 40
-}
-```
-
-### Disease Detection
-```
-POST /api/disease-predict
-(multipart/form-data with image file)
-```
-
-## 📚 Documentation
-
-- `docs/README.md` - Full documentation
-- `docs/QUICK_START.md` - Quick reference
-- `docs/SAMPLE_DATA.md` - Test data and examples
-- `docs/MODEL_TRAINING_SUMMARY.md` - Model details
-- `docs/notebooks/` - Jupyter notebooks for model training
-
-## 🧪 Testing
-
-Sample test data available in `docs/SAMPLE_DATA.md`
-
-**Test Crop Recommendation:**
-- N=40, P=40, K=40, pH=6.5, Rainfall=200, City=Delhi
-- Expected: Rice
-
-**Test Fertilizer:**
-- Crop=Rice, N=20, P=40, K=40
-- Expected: Low Nitrogen recommendation
-
-**Test Disease Detection:**
-- Upload any plant leaf image
-- Expected: Disease information
-
-## 🌍 Supported Cities
-
-Delhi, Mumbai, Bangalore, Pune, Chennai, Hyderabad, Kolkata, Ahmedabad, Jaipur, Lucknow
-
-## 📈 Supported Crops
-
-Rice, Maize, Chickpea, Kidney Beans, Pigeon Peas, Moth Beans, Mung Bean, Black Gram, Lentil, Pomegranate, Banana, Mango, Grapes, Watermelon, Muskmelon, Apple, Orange, Papaya, Coconut
 
 ## 🔧 Configuration
 
-Edit `backend/config.py` to configure:
-- Weather API key
-- Database settings
-- Application settings
+### Environment Variables
 
-## 📝 License
+Create `.env` file in backend directory:
 
-Open source - MIT License
+```
+MONGODB_URI=mongodb+srv://user:password@cluster.mongodb.net/kisansathi
+FLASK_ENV=production
+PORT=5000
+GEMINI_API_KEY=your_gemini_api_key
+```
+
+## 🐳 Docker Deployment
+
+```bash
+docker-compose up -d
+```
+
+## 📦 Deployment
+
+### Railway.app (Recommended)
+1. Push code to GitHub
+2. Connect GitHub to Railway
+3. Set environment variables
+4. Deploy
+
+### AWS / Google Cloud / Heroku
+See deployment guides in documentation
+
+## 🧪 Testing
+
+### Backend Tests
+```bash
+cd backend
+python -m pytest
+```
+
+### Frontend Tests
+```bash
+cd frontend/pixel-perfect-copy
+npm test
+```
+
+## 📖 API Documentation
+
+### Crop Recommendation
+- `POST /api/recommendations/crop` - Manual crop recommendation
+- `POST /api/recommendations/advanced-crop` - Location & season based
+- `GET /api/months` - Get available months
+
+### Fertilizer Recommendation
+- `POST /api/fertilizer/recommend` - Manual fertilizer recommendation
+- `POST /api/fertilizer-from-image` - Image-based fertilizer recommendation
+
+### Disease Detection
+- `POST /api/disease/detect` - Detect plant diseases
+- `POST /api/disease/livestock` - Detect livestock diseases
+
+### Weather
+- `GET /api/weather/current` - Current weather
+- `GET /api/weather/forecast` - Weather forecast
 
 ## 🤝 Contributing
 
-Contributions welcome! Feel free to:
-- Report bugs
-- Suggest improvements
-- Submit pull requests
+Contributions are welcome! Please follow these steps:
 
-## 📞 Contact
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Submit a pull request
 
-For questions or suggestions, reach out to the development team.
+## 📄 License
+
+This project is licensed under the MIT License - see LICENSE file for details.
+
+## 👥 Team
+
+- **Developer**: Kiro AI
+- **Project**: KisanSathi Agricultural Advisory System
+
+## 📞 Support
+
+For issues and questions:
+- GitHub Issues: [Create an issue](https://github.com/yourusername/kisansathi/issues)
+- Email: support@kisansathi.com
+
+## 🙏 Acknowledgments
+
+- MongoDB for database
+- Google Gemini for AI
+- Flask for backend framework
+- React for frontend framework
+- Railway for deployment platform
 
 ---
 
-**Status:** ✅ Production Ready  
-**Version:** 1.0.0  
-**Last Updated:** April 2026
+**Status**: ✅ Production Ready  
+**Last Updated**: May 2, 2026  
+**Version**: 1.0.0

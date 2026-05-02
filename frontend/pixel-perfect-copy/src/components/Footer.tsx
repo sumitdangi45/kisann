@@ -2,7 +2,7 @@ import img_TfVsdEorI3M6CtwPPcnMUstJ5Q_png from "../assets/external/TfVsdEorI3M6C
 import img_IaiXPcjhnjzr1iVhFOtYldWJlAw_svg from "../assets/external/IaiXPcjhnjzr1iVhFOtYldWJlAw.svg";
 import img_FkkZQ21lbczJIWxigYbEQD75uI_svg from "../assets/external/FkkZQ21lbczJIWxigYbEQD75uI.svg";
 import img_aGyF36iTVtlRHvmLXOHcT54MK3I_svg from "../assets/external/aGyF36iTVtlRHvmLXOHcT54MK3I.svg";
-import img_img_4rNEIMZl5loHoK9yMLJIIMimC4_svg from "../assets/external/4rNEIMZl5loHoK9yMLJIIMimC4.svg";
+import img_img_4rNEIMZl5loHoK9yMLJIIMimC4_svg from "../assets/external/WhatsApp Image 2026-04-19 at 15.08.47 (1)-Photoroom.png";
 import { useNavigate } from "react-router-dom";
 import { useLanguage } from "@/context/LanguageContext";
 
