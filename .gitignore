@@ -45,3 +45,24 @@ backend/build/
 *.tmp
 test_crop.jpg
 test_endpoint.py
+
+# Large ML Model Files (> 100MB)
+backend/models/*.pkl
+backend/models/*.pth
+backend/models/*.h5
+backend/models/*.joblib
+backend/models/*.onnx
+
+# Large Data Files
+backend/Data-raw/
+backend/data_core.csv
+backend/samples/
+
+# Node modules cache
+frontend/pixel-perfect-copy/node_modules/
+frontend/pixel-perfect-copy/.vite/
+
+# Build artifacts
+frontend/pixel-perfect-copy/dist/
+backend/build/
+backend/dist/
