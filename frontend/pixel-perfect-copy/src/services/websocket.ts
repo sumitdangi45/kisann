@@ -2,12 +2,18 @@ import io, { Socket } from 'socket.io-client';
 
 let socket: Socket | null = null;
 
+const getSocketURL = (): string => {
+  return import.meta.env.VITE_API_URL 
+    ? import.meta.env.VITE_API_URL
+    : 'http://localhost:5000';
+};
+
 export const initializeSocket = (userId: string): Socket => {
   if (socket && socket.connected) {
     return socket;
   }
 
-  socket = io('http://localhost:5000', {
+  socket = io(getSocketURL(), {
     query: {
       user_id: userId
     },
