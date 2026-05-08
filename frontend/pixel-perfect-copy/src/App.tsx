@@ -4,6 +4,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { LanguageProvider } from "@/context/LanguageContext";
+import { TextToSpeechProvider } from "@/context/TextToSpeechContext";
 import LanguageToggle from "@/components/LanguageToggle";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import Index from "./pages/Index.tsx";
@@ -32,17 +33,19 @@ import SeasonalCropRecommendation from "./components/SeasonalCropRecommendation.
 import WeatherTestPage from "./pages/WeatherTestPage.tsx";
 import WeatherDebugPage from "./pages/WeatherDebugPage.tsx";
 import SoilAnalysisPage from "./pages/SoilAnalysisPage.tsx";
+import TTSTestPage from "./pages/TTSTestPage.tsx";
 
 const queryClient = new QueryClient();
 
 const App = () => (
   <LanguageProvider>
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <LanguageToggle />
-        <BrowserRouter>
+    <TextToSpeechProvider>
+      <QueryClientProvider client={queryClient}>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <LanguageToggle />
+          <BrowserRouter future={{ v7_startTransition: true }}>
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/about" element={<AboutPage />} />
@@ -70,12 +73,14 @@ const App = () => (
             <Route path="/community" element={<ProtectedRoute element={<CommunityPage />} />} />
             <Route path="/monitoring" element={<ProtectedRoute element={<MonitoringPage />} />} />
             <Route path="/files" element={<ProtectedRoute element={<FileUploadPage />} />} />
+            <Route path="/tts-test" element={<TTSTestPage />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
-      </TooltipProvider>
-    </QueryClientProvider>
+        </TooltipProvider>
+      </QueryClientProvider>
+    </TextToSpeechProvider>
   </LanguageProvider>
 );
 

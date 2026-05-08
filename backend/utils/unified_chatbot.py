@@ -221,11 +221,25 @@ def process_with_gemini(message, conversation_history=None):
             }
     
     except Exception as e:
+        error_str = str(e)
         print(f"Error in Gemini: {e}")
+        
+        # Check if it's a quota exceeded error
+        if "429" in error_str or "quota" in error_str.lower() or "exceeded" in error_str.lower():
+            return {
+                'success': True,
+                'message': message,
+                'response': 'Maaf kijiye, aaj ka quota khatam ho gaya. Kal dobara try kijiye. / Sorry, today\'s quota is exhausted. Please try again tomorrow.',
+                'language': detect_language(message),
+                'feature': detect_feature_request(message),
+                'role': 'assistant',
+                'quota_exceeded': True
+            }
+        
         return {
             'success': False,
             'error': str(e),
-            'response': 'Maaf kijiye, error aaya.'
+            'response': 'Maaf kijiye, error aaya. Kripaya baad mein try kijiye. / Sorry, an error occurred. Please try again later.'
         }
 
 def get_system_prompt():

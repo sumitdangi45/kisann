@@ -4,6 +4,7 @@ import { useLanguage } from "@/context/LanguageContext";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/components/ui/use-toast";
 import NotificationCenter from "./NotificationCenter";
+import { TTSToggle } from "./TTSToggle";
 
 import img_img_4rNEIMZl5loHoK9yMLJIIMimC4_svg from "../assets/external/WhatsApp Image 2026-04-19 at 15.08.47 (1)-Photoroom.png";
 
@@ -113,6 +114,7 @@ const Navbar = () => {
         {/* CTA / User Profile */}
         {isLoggedIn ? (
           <div className="hidden lg:flex items-center gap-4">
+            <TTSToggle />
             <NotificationCenter />
             <div
               className="relative"
@@ -177,6 +179,9 @@ const Navbar = () => {
       {/* Mobile Menu */}
       {mobileOpen && (
         <div className="lg:hidden mt-3 sm:mt-4 bg-eco-green-dark/95 backdrop-blur-md rounded-2xl p-4 sm:p-6 flex flex-col gap-2 sm:gap-4">
+          <div className="flex justify-center mb-2">
+            <TTSToggle />
+          </div>
           <button onClick={() => { navigate("/"); setMobileOpen(false); }} className="text-eco-yellow font-semibold text-left text-sm sm:text-base py-2">{t('nav.home')}</button>
           <button onClick={() => { navigate("/about"); setMobileOpen(false); }} className="text-primary-foreground/80 text-left text-sm sm:text-base py-2">{t('nav.chatbot')}</button>
           <button onClick={() => { navigate("/gallery"); setMobileOpen(false); }} className="text-primary-foreground/80 text-left text-sm sm:text-base py-2">{t('nav.gallery')}</button>

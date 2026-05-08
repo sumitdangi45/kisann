@@ -8,12 +8,14 @@ import KisanSathiServicesSection from "@/components/KisanSathiServicesSection";
 import ShopPreview from "@/components/ShopPreview";
 import PetHealthAdvisorSection from "@/components/PetHealthAdvisorSection";
 import ResourcesPreviewSection from "@/components/ResourcesPreviewSection";
+import TTSTestSection from "@/components/TTSTestSection";
 
 const Index = () => {
   return (
     <div className="min-h-screen">
       <Navbar />
       <Hero />
+      <TTSTestSection />
       <KisanSathiServicesSection />
       <PetHealthAdvisorSection />
       <ResourcesPreviewSection />

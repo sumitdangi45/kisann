@@ -10,9 +10,10 @@ Features:
 """
 
 import os
+import io
 from datetime import datetime, timedelta
 from functools import wraps
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_file
 from flask_cors import CORS
 from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
 from flask_limiter import Limiter
@@ -2446,6 +2447,54 @@ def upload_crop_photo(crop_id):
 # ============================================================================
 # ERROR HANDLERS
 # ============================================================================
+
+@app.route('/api/text-to-speech', methods=['POST', 'OPTIONS'])
+def text_to_speech_endpoint():
+    """Convert text to speech"""
+    # Handle CORS preflight
+    if request.method == 'OPTIONS':
+        response = jsonify({'status': 'ok'})
+        response.headers.add('Access-Control-Allow-Origin', '*')
+        response.headers.add('Access-Control-Allow-Methods', 'POST, OPTIONS')
+        response.headers.add('Access-Control-Allow-Headers', 'Content-Type')
+        return response, 200
+    
+    try:
+        from utils.text_to_speech import generate_speech, detect_language
+        
+        data = request.get_json()
+        text = data.get('text', '')
+        language = data.get('language', 'auto')
+        
+        if not text:
+            return jsonify({'error': 'Text is required'}), 400
+        
+        # Auto-detect language if needed
+        if language == 'auto':
+            language = detect_language(text)
+        
+        # Generate speech
+        audio_content = generate_speech(text, language)
+        
+        if audio_content:
+            response = send_file(
+                io.BytesIO(audio_content),
+                mimetype='audio/mpeg',
+                as_attachment=False,
+                download_name='speech.mp3'
+            )
+            # Add CORS headers
+            response.headers.add('Access-Control-Allow-Origin', '*')
+            response.headers.add('Access-Control-Allow-Methods', 'POST, OPTIONS')
+            response.headers.add('Access-Control-Allow-Headers', 'Content-Type')
+            return response
+        else:
+            return jsonify({'error': 'Failed to generate speech'}), 500
+            
+    except Exception as e:
+        logger.error(f"Error in TTS endpoint: {e}")
+        return jsonify({'error': str(e)}), 500
+
 
 @app.errorhandler(404)
 def not_found(error):
