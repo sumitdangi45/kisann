@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { getAPIBaseURL } from "@/utils/api";
 import chatbotBg from "@/assets/chatbot-bg.jpg";
 import {
   PanelLeft,
@@ -93,7 +94,7 @@ const ChatbotUI = () => {
     setLoading(true);
 
     try {
-      const response = await fetch("/api/chatbot/message", {
+      const response = await fetch(`${getAPIBaseURL()}/chatbot/message`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ 

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Eye, EyeOff, Phone, User, Mail, Lock } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { getAPIBaseURL } from "@/utils/api";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { useLanguage } from "@/context/LanguageContext";
@@ -69,7 +70,7 @@ const AuthPage = () => {
       const username = formData.name;
 
       // Call backend to register
-      const response = await fetch("http://localhost:5000/api/auth/register", {
+      const response = await fetch(`${getAPIBaseURL()}/auth/register`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -129,7 +130,7 @@ const AuthPage = () => {
         return;
       }
 
-      const response = await fetch("http://localhost:5000/api/auth/login", {
+      const response = await fetch(`${getAPIBaseURL()}/auth/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

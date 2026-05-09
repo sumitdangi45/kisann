@@ -71,6 +71,13 @@ export const apiCall = async (
 };
 
 /**
+ * Get API base URL (for direct fetch calls)
+ */
+export const getAPIBaseURL = (): string => {
+  return API_BASE_URL;
+};
+
+/**
  * Authentication APIs
  */
 export const authAPI = {
@@ -222,4 +229,5 @@ export default {
   getToken,
   getAuthHeaders,
   apiCall,
+  getAPIBaseURL,
 };
