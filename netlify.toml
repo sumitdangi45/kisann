@@ -1,10 +1,11 @@
 [build]
   base = "frontend/pixel-perfect-copy"
-  command = "npm run build"
+  command = "npm install && npm run build"
   publish = "dist"
 
 [build.environment]
   VITE_API_URL = "https://kisansathi-backend-hom2.onrender.com"
+  NODE_VERSION = "20"
 
 [[redirects]]
   from = "/*"
