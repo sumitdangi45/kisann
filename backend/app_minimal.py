@@ -100,7 +100,7 @@ def health_check():
 @app.route('/api/status', methods=['GET'])
 def get_status():
     """Status endpoint"""
-    db_status = 'connected' if db else 'disconnected'
+    db_status = 'connected' if db is not None else 'disconnected'
     return jsonify({
         'status': 'running',
         'database': db_status,
