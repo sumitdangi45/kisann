@@ -2512,7 +2512,7 @@ def internal_error(error):
 # Log startup info
 logger.info(f"Starting KisanSathi Backend (Enhanced)")
 logger.info(f"Database: {MONGODB_DB}")
-if db:
+if db is not None:
     logger.info("✅ MongoDB connected and ready!")
 else:
     logger.warning("⚠️ MongoDB not connected - some features may not work")
