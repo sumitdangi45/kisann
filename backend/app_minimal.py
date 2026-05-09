@@ -98,7 +98,7 @@ def health_check():
     }), 200
 
 @app.route('/api/status', methods=['GET'])
-def status():
+def get_status():
     """Status endpoint"""
     db_status = 'connected' if db else 'disconnected'
     return jsonify({
