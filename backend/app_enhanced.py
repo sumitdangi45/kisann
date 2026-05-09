@@ -2509,6 +2509,27 @@ def internal_error(error):
 # MAIN
 # ============================================================================
 
+# Log startup info
+logger.info(f"Starting KisanSathi Backend (Enhanced)")
+logger.info(f"Database: {MONGODB_DB}")
+if db:
+    logger.info("✅ MongoDB connected and ready!")
+else:
+    logger.warning("⚠️ MongoDB not connected - some features may not work")
+logger.info("✅ JWT Authentication enabled!")
+logger.info("✅ Rate Limiting enabled!")
+logger.info("✅ Caching enabled!")
+
+if redis_manager and redis_manager.connected:
+    logger.info("✅ Redis caching enabled!")
+    logger.info(f"   Host: {REDIS_HOST}:{REDIS_PORT}")
+else:
+    logger.warning("⚠️ Redis not available - using fallback caching")
+
+logger.info("✅ File handling enabled!")
+logger.info("✅ WebSocket events enabled!")
+logger.info("✅ All 31 API endpoints ready!")
+
 if __name__ == '__main__':
     if db is None:
         logger.error("❌ MongoDB not connected. Please start MongoDB and try again.")
@@ -2516,23 +2537,6 @@ if __name__ == '__main__':
     
     debug = os.getenv('FLASK_DEBUG', 'False').lower() == 'true'
     port = int(os.getenv('PORT', 5000))
-    
-    logger.info(f"Starting KisanSathi Backend (Enhanced) on port {port}")
-    logger.info(f"Database: {MONGODB_DB}")
-    logger.info("✅ MongoDB connected and ready!")
-    logger.info("✅ JWT Authentication enabled!")
-    logger.info("✅ Rate Limiting enabled!")
-    logger.info("✅ Caching enabled!")
-    
-    if redis_manager and redis_manager.connected:
-        logger.info("✅ Redis caching enabled!")
-        logger.info(f"   Host: {REDIS_HOST}:{REDIS_PORT}")
-    else:
-        logger.warning("⚠️ Redis not available - using fallback caching")
-    
-    logger.info("✅ File handling enabled!")
-    logger.info("✅ WebSocket events enabled!")
-    logger.info("✅ All 31 API endpoints ready!")
     
     socketio.run(
         app,
