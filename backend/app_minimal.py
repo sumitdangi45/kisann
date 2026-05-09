@@ -70,8 +70,23 @@ except Exception as e:
     db = None
 
 # ============================================================================
-# HEALTH CHECK ENDPOINTS
+# ROOT & HEALTH CHECK ENDPOINTS
 # ============================================================================
+
+@app.route('/', methods=['GET'])
+def root():
+    """Root endpoint"""
+    return jsonify({
+        'message': 'KisanSathi Backend API',
+        'version': '5.0.0',
+        'status': 'running',
+        'endpoints': {
+            'health': '/api/health',
+            'status': '/api/status',
+            'auth': '/api/auth/*',
+            'community': '/api/community/*'
+        }
+    }), 200
 
 @app.route('/api/health', methods=['GET'])
 def health_check():
