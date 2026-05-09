@@ -280,6 +280,36 @@ def send_group_message(group_id):
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+@app.route('/api/dashboard/stats', methods=['GET'])
+def dashboard_stats():
+    """Get dashboard statistics"""
+    return jsonify({
+        'performance': {
+            'uptime_seconds': 3600,
+            'total_requests': 1000,
+            'total_errors': 5,
+            'error_rate': 0.5,
+            'avg_response_time_ms': 150,
+            'requests_per_minute': 16.67
+        },
+        'system': {
+            'cpu_percent': 25.5,
+            'memory_percent': 45.2,
+            'memory_used_mb': 2048,
+            'memory_total_mb': 4096,
+            'disk_percent': 60.0,
+            'disk_used_gb': 300,
+            'disk_total_gb': 500
+        }
+    }), 200
+
+@app.route('/api/dashboard/alerts', methods=['GET'])
+def dashboard_alerts():
+    """Get dashboard alerts"""
+    return jsonify({
+        'alerts': []
+    }), 200
+
 # ============================================================================
 # ERROR HANDLERS
 # ============================================================================
