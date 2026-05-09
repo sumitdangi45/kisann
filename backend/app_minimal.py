@@ -53,7 +53,13 @@ limiter = Limiter(
 cache = Cache(app, config={'CACHE_TYPE': 'simple'})
 
 # Enable CORS
-CORS(app, resources={r"/api/*": {"origins": "*"}})
+CORS(app, resources={
+    r"/api/*": {
+        "origins": "*",
+        "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+        "allow_headers": ["Content-Type", "Authorization"]
+    }
+})
 
 # MongoDB Connection
 MONGODB_URI = os.getenv('MONGODB_URI', 'mongodb://localhost:27017')
