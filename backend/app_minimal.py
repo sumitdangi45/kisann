@@ -209,6 +209,77 @@ def fertilizer_recommend():
         'status': 'coming soon'
     }), 200
 
+@app.route('/api/chatbot/message', methods=['POST'])
+def chatbot_message():
+    """Chatbot message endpoint"""
+    try:
+        data = request.get_json()
+        message = data.get('message', '')
+        
+        return jsonify({
+            'response': f'Echo: {message}',
+            'status': 'ok'
+        }), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/chatbot/voice', methods=['POST'])
+def chatbot_voice():
+    """Generate voice response"""
+    return jsonify({
+        'message': 'Voice generation endpoint',
+        'status': 'coming soon'
+    }), 200
+
+@app.route('/api/livestock-diseases/<animal_type>', methods=['GET'])
+def get_livestock_diseases(animal_type):
+    """Get livestock diseases for animal type"""
+    return jsonify({
+        'animal_type': animal_type,
+        'diseases': [],
+        'status': 'coming soon'
+    }), 200
+
+@app.route('/api/community/groups', methods=['GET'])
+def get_community_groups():
+    """Get all community groups"""
+    return jsonify({
+        'groups': [],
+        'total': 0
+    }), 200
+
+@app.route('/api/community/groups', methods=['POST'])
+def create_community_group():
+    """Create a new community group"""
+    try:
+        data = request.get_json()
+        return jsonify({
+            'message': 'Group created',
+            'group_id': 'temp_id'
+        }), 201
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/community/groups/<group_id>/messages', methods=['GET'])
+def get_group_messages(group_id):
+    """Get messages in a group"""
+    return jsonify({
+        'messages': [],
+        'total': 0
+    }), 200
+
+@app.route('/api/community/groups/<group_id>/messages', methods=['POST'])
+def send_group_message(group_id):
+    """Send a message to a group"""
+    try:
+        data = request.get_json()
+        return jsonify({
+            'message': 'Message sent',
+            'message_id': 'temp_id'
+        }), 201
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 # ============================================================================
 # ERROR HANDLERS
 # ============================================================================
