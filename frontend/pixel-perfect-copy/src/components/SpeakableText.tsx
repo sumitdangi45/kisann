@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Volume2, VolumeX } from 'lucide-react';
 import { useTextToSpeechContext } from '@/context/TextToSpeechContext';
+import { getAPIBaseURL } from '@/utils/api';
 
 interface SpeakableTextProps {
   children: React.ReactNode;
@@ -44,9 +45,10 @@ export const SpeakableText: React.FC<SpeakableTextProps> = ({
       setIsPlaying(true);
       onSpeak?.();
 
+      const baseURL = getAPIBaseURL();
       console.log('Fetching TTS for:', textContent, 'Language:', finalLanguage);
 
-      const response = await fetch('http://localhost:5000/api/text-to-speech', {
+      const response = await fetch(`${baseURL}/text-to-speech`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

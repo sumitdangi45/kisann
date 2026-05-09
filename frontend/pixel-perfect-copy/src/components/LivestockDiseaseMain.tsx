@@ -1,5 +1,6 @@
 import { useState, useRef } from 'react';
 import { Upload, AlertCircle, CheckCircle, Loader, ArrowLeft } from 'lucide-react';
+import { getAPIBaseURL } from '@/utils/api';
 
 interface DiseaseResult {
   success: boolean;
@@ -83,7 +84,7 @@ function LivestockDiseaseMain() {
       formData.append('animal_type', selectedAnimal);
       symptoms.forEach((symptom) => formData.append('symptoms', symptom));
 
-      const response = await fetch('http://localhost:5000/api/livestock-disease-predict', {
+      const response = await fetch(`${getAPIBaseURL()}/livestock-disease-predict`, {
         method: 'POST',
         body: formData,
       });

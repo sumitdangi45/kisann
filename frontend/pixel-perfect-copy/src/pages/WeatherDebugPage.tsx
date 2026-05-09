@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { getAPIBaseURL } from '../utils/api';
 
 const WeatherDebugPage: React.FC = () => {
   const [logs, setLogs] = useState<string[]>([]);
@@ -12,9 +13,11 @@ const WeatherDebugPage: React.FC = () => {
   useEffect(() => {
     addLog('Page loaded');
     
+    const baseURL = getAPIBaseURL();
+    
     // Test 1: Backend location
     addLog('Testing backend location detection...');
-    fetch('http://localhost:5000/api/location/detect')
+    fetch(`${baseURL}/location/detect`)
       .then(res => {
         addLog(`Location response status: ${res.status}`);
         return res.json();
@@ -26,7 +29,7 @@ const WeatherDebugPage: React.FC = () => {
         // Test 2: Weather for detected city
         const city = data.city || 'Delhi';
         addLog(`Fetching weather for: ${city}`);
-        return fetch(`http://localhost:5000/api/weather/${city}`);
+        return fetch(`${baseURL}/weather/${city}`);
       })
       .then(res => {
         addLog(`Weather response status: ${res.status}`);
@@ -75,8 +78,9 @@ const WeatherDebugPage: React.FC = () => {
         <div className="flex gap-4 flex-wrap">
           <button
             onClick={() => {
+              const baseURL = getAPIBaseURL();
               addLog('Testing location detection...');
-              fetch('http://localhost:5000/api/location/detect')
+              fetch(`${baseURL}/location/detect`)
                 .then(r => r.json())
                 .then(d => addLog(`Location: ${JSON.stringify(d)}`))
                 .catch(e => addLog(`Error: ${e.message}`));
@@ -88,8 +92,9 @@ const WeatherDebugPage: React.FC = () => {
           
           <button
             onClick={() => {
+              const baseURL = getAPIBaseURL();
               addLog('Testing weather for Delhi...');
-              fetch('http://localhost:5000/api/weather/Delhi')
+              fetch(`${baseURL}/weather/Delhi`)
                 .then(r => r.json())
                 .then(d => addLog(`Weather: ${JSON.stringify(d.weather)}`))
                 .catch(e => addLog(`Error: ${e.message}`));

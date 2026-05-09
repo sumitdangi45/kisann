@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { getAPIBaseURL } from '../utils/api';
 import '../styles/FileUpload.css';
 
 interface FileUploadProps {
@@ -40,7 +41,8 @@ const FileUpload: React.FC<FileUploadProps> = ({
     formData.append('folder', folder);
 
     try {
-      const endpoint = `/api/files/upload/${fileType}`;
+      const baseURL = getAPIBaseURL();
+      const endpoint = `/files/upload/${fileType}`;
       
       const xhr = new XMLHttpRequest();
       
@@ -72,7 +74,7 @@ const FileUpload: React.FC<FileUploadProps> = ({
         setUploading(false);
       });
 
-      xhr.open('POST', `http://localhost:5000${endpoint}`);
+      xhr.open('POST', `${baseURL}${endpoint}`);
       xhr.send(formData);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Upload failed');
@@ -84,8 +86,9 @@ const FileUpload: React.FC<FileUploadProps> = ({
     if (!uploadedFile) return;
 
     try {
+      const baseURL = getAPIBaseURL();
       const response = await fetch(
-        `http://localhost:5000/api/files/delete/${uploadedFile.public_id}?type=${fileType}`,
+        `${baseURL}/files/delete/${uploadedFile.public_id}?type=${fileType}`,
         { method: 'DELETE' }
       );
 

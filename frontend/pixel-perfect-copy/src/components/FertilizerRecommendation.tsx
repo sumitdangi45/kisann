@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { getAPIBaseURL } from '@/utils/api';
 
 function FertilizerRecommendation() {
   const [formData, setFormData] = useState({
@@ -34,7 +35,7 @@ function FertilizerRecommendation() {
 
     setLoading(true);
     try {
-      const response = await fetch('http://localhost:5000/api/fertilizer/recommend', {
+      const response = await fetch(`${getAPIBaseURL()}/fertilizer/recommend`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -111,7 +112,7 @@ function FertilizerRecommendation() {
         const formDataFile = new FormData();
         formDataFile.append('file', file);
 
-        const response = await fetch('http://localhost:5000/api/fertilizer-from-image', {
+        const response = await fetch(`${getAPIBaseURL()}/fertilizer-from-image`, {
           method: 'POST',
           body: formDataFile
         });

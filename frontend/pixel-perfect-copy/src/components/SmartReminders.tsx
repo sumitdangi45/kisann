@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Calendar, CheckCircle, AlertCircle, Upload, Plus, Trash2, Camera, Clock, Bell } from 'lucide-react';
+import { getAPIBaseURL } from '@/utils/api';
 import AlertBanner from './AlertBanner';
 import NotificationCenter from './NotificationCenter';
 
@@ -74,7 +75,8 @@ const SmartReminders: React.FC = () => {
   const fetchCrops = async () => {
     setLoading(true);
     try {
-      const response = await fetch(`http://localhost:5000/api/reminders/crops/${farmerId}`);
+      const baseURL = getAPIBaseURL();
+      const response = await fetch(`${baseURL}/reminders/crops/${farmerId}`);
       const data = await response.json();
       if (data.success) {
         setCrops(data.crops);
@@ -94,7 +96,8 @@ const SmartReminders: React.FC = () => {
 
   const fetchAvailableCrops = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/reminders/available-crops');
+      const baseURL = getAPIBaseURL();
+      const response = await fetch(`${baseURL}/reminders/available-crops`);
       const data = await response.json();
       if (data.success) {
         setAvailableCrops(data.crops);
@@ -106,7 +109,8 @@ const SmartReminders: React.FC = () => {
 
   const fetchReminders = async (cropId: string) => {
     try {
-      const response = await fetch(`http://localhost:5000/api/reminders/all/${cropId}`);
+      const baseURL = getAPIBaseURL();
+      const response = await fetch(`${baseURL}/reminders/all/${cropId}`);
       const data = await response.json();
       if (data.success) {
         setReminders(data.reminders);
@@ -118,7 +122,8 @@ const SmartReminders: React.FC = () => {
 
   const fetchPhotos = async (cropId: string) => {
     try {
-      const response = await fetch(`http://localhost:5000/api/reminders/photos/${cropId}`);
+      const baseURL = getAPIBaseURL();
+      const response = await fetch(`${baseURL}/reminders/photos/${cropId}`);
       const data = await response.json();
       if (data.success) {
         setPhotos(data.photos);
@@ -131,7 +136,8 @@ const SmartReminders: React.FC = () => {
   const handleAddCrop = async () => {
     setLoading(true);
     try {
-      const response = await fetch('http://localhost:5000/api/reminders/add-crop', {
+      const baseURL = getAPIBaseURL();
+      const response = await fetch(`${baseURL}/reminders/add-crop`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -163,7 +169,8 @@ const SmartReminders: React.FC = () => {
 
   const handleCompleteReminder = async (reminderId: string, notes: string) => {
     try {
-      const response = await fetch('http://localhost:5000/api/reminders/complete', {
+      const baseURL = getAPIBaseURL();
+      const response = await fetch(`${baseURL}/reminders/complete`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ reminder_id: reminderId, notes }),
@@ -191,8 +198,9 @@ const SmartReminders: React.FC = () => {
     formData.append('notes', notes);
 
     try {
+      const baseURL = getAPIBaseURL();
       const response = await fetch(
-        `http://localhost:5000/api/reminders/upload-photo/${selectedCrop.id}`,
+        `${baseURL}/reminders/upload-photo/${selectedCrop.id}`,
         {
           method: 'POST',
           body: formData,

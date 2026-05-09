@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { useLanguage } from "@/context/LanguageContext";
 import { Loader2 } from "lucide-react";
 import useSpeechRecognition from 'react-speech-recognition';
+import { getAPIBaseURL } from "@/utils/api";
 
 interface LivestockRecommendation {
   disease: string;
@@ -104,7 +105,7 @@ const LivestockHealthComplete = () => {
         top_n: 5
       };
 
-      const response = await fetch('http://localhost:5000/api/livestock/disease-predict', {
+      const response = await fetch(`${getAPIBaseURL()}/livestock/disease-predict`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

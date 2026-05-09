@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Volume2, VolumeX } from 'lucide-react';
 import { useTextToSpeechContext } from '@/context/TextToSpeechContext';
+import { getAPIBaseURL } from '@/utils/api';
 
 interface SentenceReaderProps {
   children: string;
@@ -34,7 +35,7 @@ export const SentenceReader: React.FC<SentenceReaderProps> = ({
       console.log('Reading complete sentence:', children);
       console.log('Language:', finalLanguage);
 
-      const response = await fetch('http://localhost:5000/api/text-to-speech', {
+      const response = await fetch(`${getAPIBaseURL()}/text-to-speech`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

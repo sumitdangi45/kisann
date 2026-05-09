@@ -1,4 +1,5 @@
 import { useState, useRef } from 'react';
+import { getAPIBaseURL } from '../utils/api';
 
 interface VoiceState {
   isListening: boolean;
@@ -81,7 +82,8 @@ function VoiceFertilizerPipeline() {
   const extractInformation = async (transcript: string) => {
     setLoading(true);
     try {
-      const response = await fetch('http://localhost:5000/api/extract-fertilizer-info', {
+      const baseURL = getAPIBaseURL();
+      const response = await fetch(`${baseURL}/extract-fertilizer-info`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ transcript })
@@ -101,7 +103,8 @@ function VoiceFertilizerPipeline() {
   const getFertilizerRecommendation = async (extractedData: any) => {
     setLoading(true);
     try {
-      const response = await fetch('http://localhost:5000/api/fertilizer/recommend', {
+      const baseURL = getAPIBaseURL();
+      const response = await fetch(`${baseURL}/fertilizer/recommend`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -130,7 +133,8 @@ function VoiceFertilizerPipeline() {
   const generateExplanation = async (recommendation: any, extractedData: any) => {
     setLoading(true);
     try {
-      const response = await fetch('http://localhost:5000/api/generate-explanation', {
+      const baseURL = getAPIBaseURL();
+      const response = await fetch(`${baseURL}/generate-explanation`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

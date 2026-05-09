@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { getAPIBaseURL } from '../utils/api';
 
 const WeatherTestPage: React.FC = () => {
   const [data, setData] = useState<any>(null);
@@ -9,8 +10,9 @@ const WeatherTestPage: React.FC = () => {
     setLoading(true);
     setError('');
     try {
+      const baseURL = getAPIBaseURL();
       console.log(`Fetching weather for ${city}...`);
-      const response = await fetch(`http://localhost:5000/api/weather/${encodeURIComponent(city)}`);
+      const response = await fetch(`${baseURL}/weather/${encodeURIComponent(city)}`);
       console.log('Response status:', response.status);
       
       const json = await response.json();

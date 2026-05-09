@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useTextToSpeechContext } from '@/context/TextToSpeechContext';
 import { SentenceReader } from '@/components/SentenceReader';
+import { getAPIBaseURL } from '../utils/api';
 
 /**
  * Dedicated TTS Testing Page
@@ -18,10 +19,11 @@ const TTSTestPage = () => {
     setSuccess('');
 
     try {
+      const baseURL = getAPIBaseURL();
       console.log('Testing TTS with text:', testText);
       console.log('Language:', language);
 
-      const response = await fetch('http://localhost:5000/api/text-to-speech', {
+      const response = await fetch(`${baseURL}/text-to-speech`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

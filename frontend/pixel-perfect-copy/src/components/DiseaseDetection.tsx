@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { getAPIBaseURL } from '../utils/api';
 
 function parseDiseaseName(raw: string) {
   const parts = raw.split('___');
@@ -54,9 +55,10 @@ function DiseaseDetection() {
     if (uploadedFiles.length === 0) { alert('Please select at least one image'); return; }
     setLoading(true);
     try {
+      const baseURL = getAPIBaseURL();
       const formData = new FormData();
       uploadedFiles.forEach(file => formData.append('files', file));
-      const response = await fetch('http://localhost:5000/api/disease-predict', { method: 'POST', body: formData });
+      const response = await fetch(`${baseURL}/disease-predict`, { method: 'POST', body: formData });
       const data = await response.json();
       setResult(data);
       if (data.success) speakResult(data);
@@ -71,9 +73,10 @@ function DiseaseDetection() {
     if (!riceFile) { alert('Please select a rice leaf image'); return; }
     setRiceLoading(true);
     try {
+      const baseURL = getAPIBaseURL();
       const fd = new FormData();
       fd.append('file', riceFile);
-      const res = await fetch('http://localhost:5000/api/rice-disease-predict', { method: 'POST', body: fd });
+      const res = await fetch(`${baseURL}/rice-disease-predict`, { method: 'POST', body: fd });
       const data = await res.json();
       setRiceResult(data);
     } catch {

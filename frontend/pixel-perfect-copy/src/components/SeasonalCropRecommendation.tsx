@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useLanguage } from "@/context/LanguageContext";
 import { Loader2 } from "lucide-react";
+import { getAPIBaseURL } from "@/utils/api";
 
 interface CropRecommendation {
   rank: number;
@@ -33,7 +34,7 @@ const SeasonalCropRecommendation = () => {
   useEffect(() => {
     const loadSeasons = async () => {
       try {
-        const response = await fetch("http://localhost:5000/api/seasons", {
+        const response = await fetch(`${getAPIBaseURL()}/seasons`, {
           method: "GET",
           headers: { "Content-Type": "application/json" },
         });
@@ -61,7 +62,7 @@ const SeasonalCropRecommendation = () => {
     setLoading(true);
 
     try {
-      const response = await fetch("http://localhost:5000/api/recommendations/seasonal-crop", {
+      const response = await fetch(`${getAPIBaseURL()}/recommendations/seasonal-crop`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

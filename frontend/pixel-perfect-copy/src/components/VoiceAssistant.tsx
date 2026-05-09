@@ -1,6 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { Mic, Send, Volume2, Copy, Loader } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
+import { getAPIBaseURL } from '@/utils/api';
 
 interface Message {
   id: string;
@@ -88,7 +89,8 @@ const VoiceAssistant: React.FC = () => {
     setIsLoading(true);
 
     try {
-      const response = await fetch('http://localhost:5000/api/voice-assistant/ask', {
+      const baseURL = getAPIBaseURL();
+      const response = await fetch(`${baseURL}/voice-assistant/ask`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { useLanguage } from "@/context/LanguageContext";
 import { Loader2 } from "lucide-react";
 import SpeechRecognition, { useSpeechRecognition } from 'react-speech-recognition';
+import { getAPIBaseURL } from '@/utils/api';
 
 interface CropRecommendation {
   crop: string;
@@ -85,7 +86,7 @@ const CropRecommendationComplete = () => {
   // Detect current location on component mount
   useEffect(() => {
     // Fetch months
-    fetch('http://localhost:5000/api/months')
+    fetch(`${getAPIBaseURL()}/months`)
       .then(res => res.json())
       .then(data => {
         if (data.success) {
@@ -163,7 +164,7 @@ const CropRecommendationComplete = () => {
       const formDataToSend = new FormData();
       formDataToSend.append('image', file);
 
-      const response = await fetch('http://localhost:5000/api/recommendations/extract-from-image', {
+      const response = await fetch(`${getAPIBaseURL()}/recommendations/extract-from-image`, {
         method: 'POST',
         body: formDataToSend,
       });
@@ -203,7 +204,7 @@ const CropRecommendationComplete = () => {
       
       if (activeTab === 'manual') {
         // Manual input endpoint
-        endpoint = 'http://localhost:5000/api/recommendations/crop';
+        endpoint = `${getAPIBaseURL()}/recommendations/crop`;
         payload = {
           N: parseFloat(formData.nitrogen),
           P: parseFloat(formData.phosphorus),
@@ -216,14 +217,14 @@ const CropRecommendationComplete = () => {
         };
       } else if (activeTab === 'perMonth') {
         // Per Month endpoint - uses advanced-crop with just month
-        endpoint = 'http://localhost:5000/api/recommendations/advanced-crop';
+        endpoint = `${getAPIBaseURL()}/recommendations/advanced-crop`;
         payload = {
           month: formData.month,
           location: 'Central India' // Default location for per-month recommendations
         };
       } else {
         // Advanced endpoint - Location & Season
-        endpoint = 'http://localhost:5000/api/recommendations/advanced-crop';
+        endpoint = `${getAPIBaseURL()}/recommendations/advanced-crop`;
         payload = {
           month: formData.month,
           location: formData.location
@@ -821,7 +822,7 @@ const CropRecommendationComplete = () => {
                             const formDataToSend = new FormData();
                             formDataToSend.append('pdf', file);
                             
-                            const response = await fetch('http://localhost:5000/api/recommendations/extract-from-pdf', {
+                            const response = await fetch(`${getAPIBaseURL()}/recommendations/extract-from-pdf`, {
                               method: 'POST',
                               body: formDataToSend,
                             });

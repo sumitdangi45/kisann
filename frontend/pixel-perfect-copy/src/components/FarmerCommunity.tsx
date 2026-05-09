@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Send, Image, Smile, Users, Search, Phone, Video, MoreVertical, Plus, X, Settings, Trash2, UserPlus, Crown } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
 import { useToast } from '@/components/ui/use-toast';
+import { getAPIBaseURL } from '@/utils/api';
 import {
   initializeSocket,
   getSocket,
@@ -92,7 +93,7 @@ const FarmerCommunity: React.FC = () => {
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const API_BASE = 'http://localhost:5000/api';
+  const API_BASE = getAPIBaseURL();
 
   // Get current user ID from localStorage
   useEffect(() => {

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Leaf, Droplets, Thermometer, Wind, Zap, TrendingUp, AlertCircle, CheckCircle } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
+import { getAPIBaseURL } from '../utils/api';
 
 interface SoilAnalysisResult {
   success: boolean;
@@ -47,7 +48,8 @@ const SoilAnalysisPage: React.FC = () => {
   useEffect(() => {
     const loadSoilTypes = async () => {
       try {
-        const response = await fetch('http://localhost:5000/api/soil/types');
+        const baseURL = getAPIBaseURL();
+        const response = await fetch(`${baseURL}/soil/types`);
         const data = await response.json();
         if (data.success) {
           setSoilTypes(data.soil_types);
@@ -75,7 +77,8 @@ const SoilAnalysisPage: React.FC = () => {
     setResult(null);
 
     try {
-      const response = await fetch('http://localhost:5000/api/soil/analyze', {
+      const baseURL = getAPIBaseURL();
+      const response = await fetch(`${baseURL}/soil/analyze`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData)

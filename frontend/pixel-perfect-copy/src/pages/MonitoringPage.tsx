@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { getAPIBaseURL } from '../utils/api';
 import '../styles/Monitoring.css';
 
 interface Stats {
@@ -36,12 +37,13 @@ const MonitoringPage: React.FC = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const statsResponse = await fetch('http://localhost:5000/api/dashboard/stats');
+        const baseURL = getAPIBaseURL();
+        const statsResponse = await fetch(`${baseURL}/dashboard/stats`);
         const statsData = await statsResponse.json();
         setStats(statsData.performance);
         setSystemStats(statsData.system);
         
-        const alertsResponse = await fetch('http://localhost:5000/api/dashboard/alerts');
+        const alertsResponse = await fetch(`${baseURL}/dashboard/alerts`);
         const alertsData = await alertsResponse.json();
         setAlerts(alertsData.alerts);
         

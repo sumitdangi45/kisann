@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Send, Mic, Volume2, Copy, Loader, Trash2, Plus, MessageCircle, Paperclip, X, ChevronRight, Menu } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
+import { getAPIBaseURL } from '@/utils/api';
 
 interface Message {
   id: string;
@@ -108,7 +109,7 @@ const UnifiedChatbot: React.FC = () => {
         content: msg.content,
       }));
 
-      const response = await fetch('http://localhost:5000/api/chatbot/message', {
+      const response = await fetch(`${getAPIBaseURL()}/chatbot/message`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

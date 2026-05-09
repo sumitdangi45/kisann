@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useLanguage } from "@/context/LanguageContext";
 import { Loader2 } from "lucide-react";
+import { getAPIBaseURL } from "@/utils/api";
 
 interface CropRecommendation {
   crop: string;
@@ -38,7 +39,8 @@ const CropRecommendationMain = () => {
     setLoading(true);
 
     try {
-      const response = await fetch("http://localhost:5000/api/recommendations/crop", {
+      const baseURL = getAPIBaseURL();
+      const response = await fetch(`${baseURL}/recommendations/crop`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

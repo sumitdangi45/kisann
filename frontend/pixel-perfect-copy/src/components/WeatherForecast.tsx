@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Cloud, CloudRain, Sun, Wind, Droplets, MapPin, Search, AlertCircle, Calendar, Thermometer } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
+import { getAPIBaseURL } from '@/utils/api';
 
 interface CurrentWeather {
   temperature: number;
@@ -64,7 +65,8 @@ const WeatherForecast: React.FC = () => {
     setLoading(true);
     setError('');
     try {
-      const response = await fetch(`http://localhost:5000/api/weather/${encodeURIComponent(cityName)}`);
+      const baseURL = getAPIBaseURL();
+      const response = await fetch(`${baseURL}/weather/${encodeURIComponent(cityName)}`);
       const data = await response.json();
 
       if (data.weather) {
@@ -125,6 +127,7 @@ const WeatherForecast: React.FC = () => {
     setLoading(true);
     setError('');
     
+    const baseURL = getAPIBaseURL();
     console.log('Current location button clicked');
     
     // Try browser geolocation first (more accurate)
@@ -137,7 +140,7 @@ const WeatherForecast: React.FC = () => {
           try {
             // Send GPS coordinates to backend for reverse geocoding
             console.log('Sending GPS coordinates to backend...');
-            const response = await fetch('http://localhost:5000/api/location/from-gps', {
+            const response = await fetch(`${baseURL}/location/from-gps`, {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
@@ -162,7 +165,7 @@ const WeatherForecast: React.FC = () => {
             console.log('Backend reverse geocoding failed:', err);
             // Fallback to backend IP detection
             try {
-              const backendResponse = await fetch('http://localhost:5000/api/location/detect', { timeout: 5000 });
+              const backendResponse = await fetch(`${baseURL}/location/detect`, { timeout: 5000 });
               const backendData = await backendResponse.json();
               if (backendData.success && backendData.city) {
                 console.log('Using backend detected city:', backendData.city);
@@ -181,7 +184,7 @@ const WeatherForecast: React.FC = () => {
         (err) => {
           console.log('Geolocation permission denied or error:', err);
           // Fallback to backend detection
-          fetch('http://localhost:5000/api/location/detect', { timeout: 5000 })
+          fetch(`${baseURL}/location/detect`, { timeout: 5000 })
             .then(res => res.json())
             .then(data => {
               if (data.success && data.city) {
@@ -207,7 +210,7 @@ const WeatherForecast: React.FC = () => {
     } else {
       console.log('Geolocation not supported, using backend detection');
       // Fallback to backend detection
-      fetch('http://localhost:5000/api/location/detect', { timeout: 5000 })
+      fetch(`${baseURL}/location/detect`, { timeout: 5000 })
         .then(res => res.json())
         .then(data => {
           if (data.success && data.city) {
@@ -229,12 +232,13 @@ const WeatherForecast: React.FC = () => {
   // Auto-detect location on component mount
   useEffect(() => {
     const autoDetectLocation = async () => {
+      const baseURL = getAPIBaseURL();
       console.log('Starting auto-detection...');
       
       // Try backend location detection first (no permission needed)
       try {
         console.log('Trying backend location detection...');
-        const backendResponse = await fetch('http://localhost:5000/api/location/detect');
+        const backendResponse = await fetch(`${baseURL}/location/detect`);
         const backendData = await backendResponse.json();
         console.log('Backend response:', backendData);
         
