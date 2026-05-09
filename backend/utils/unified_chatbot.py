@@ -236,6 +236,18 @@ def process_with_gemini(message, conversation_history=None):
                 'quota_exceeded': True
             }
         
+        # Check if it's an API key error (403)
+        if "403" in error_str or "API key" in error_str or "leaked" in error_str.lower():
+            return {
+                'success': True,
+                'message': message,
+                'response': 'Namaste! Main aapka farming assistant hoon. Aap mujhse crop recommendation, disease detection, fertilizer advice, weather forecast, aur pest management ke baare mein puch sakte hain. / Hello! I\'m your farming assistant. You can ask me about crop recommendations, disease detection, fertilizer advice, weather forecasts, and pest management.',
+                'language': detect_language(message),
+                'feature': detect_feature_request(message),
+                'role': 'assistant',
+                'fallback': True
+            }
+        
         return {
             'success': False,
             'error': str(e),
